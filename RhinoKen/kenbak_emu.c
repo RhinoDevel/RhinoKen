@@ -473,6 +473,9 @@ static int step_in_sl(struct kenbak_data * const d)
     return 1;
 }
 
+/**
+ * - See page 32.
+ */
 static int step_in_sm(struct kenbak_data * const d)
 {
     assert(d->state == kenbak_state_sm);
