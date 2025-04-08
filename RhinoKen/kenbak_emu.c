@@ -466,7 +466,7 @@ static int step_in_sl(struct kenbak_data * const d)
     // TODO: Implement bit manipulation:
     //
     // "For the Set 0 or Set 1 instructions, the designated bit is set during
-    // SL. For the Skip on a and Skip on 1 instructions, the P register
+    // SL. For the Skip on 0 and Skip on 1 instructions, the P register
     // increment control is set as necessary."
 
     d->state = kenbak_state_sa; // SL -BM-> SA
