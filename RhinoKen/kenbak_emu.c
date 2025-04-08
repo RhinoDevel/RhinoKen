@@ -758,7 +758,7 @@ static void update_reg_k(struct kenbak_data * const d)
 
 /**
  * - If clear or console data push buttons are depressed during run mode, the
- *   real Kenbak-1 will display the contents of location 128 as a fainter
+ *   real Kenbak-1 will display the contents of location 128 as a faint
  *   background light (see page 20 of the programming reference manual)!
  */
 static void update_output(struct kenbak_data * const d)
