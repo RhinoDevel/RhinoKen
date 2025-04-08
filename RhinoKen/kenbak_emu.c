@@ -378,7 +378,7 @@ static int step_in_sg(struct kenbak_data * const d)
 }
 
 /** Searches for X register. Previous states are SE (for NON-indirect indexing)
- *  or SG (for indirect indexing). W holds the 
+ *  or SG (for indirect indexing).
  * 
  *  - Byte time count depends on delay line position.
  *  - See page 31.
