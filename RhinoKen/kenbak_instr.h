@@ -23,6 +23,15 @@
 //
 #define KENBAK_INSTR_IS_BIT(instr_byte) (2 == (7 & (instr_byte)))
 
+// Get the address to search for, if a single byte instruction is currently
+// being processed (for other instructions, this will FAIL; see PRM, page 12 and
+// 13):
+//
+#define KENBAK_INSTR_ONE_BYTE_SEARCH_A_OR_B(first_byte) \
+    ((first_byte >> 4) & 1)
+//
+// Hard coded, see KENBAK_DATA_ADDR_A & KENBAK_DATA_ADDR_B.
+
 // - See PRM, page 24.
 // - Detail may be inconsistent and to-be-expanded in the future, if necessary.
 //

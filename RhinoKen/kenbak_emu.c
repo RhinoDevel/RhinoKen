@@ -483,6 +483,25 @@ static int step_in_sm(struct kenbak_data * const d)
     return 1; // TODO: Implement!
 }
 
+/**
+ * - Byte time count depends on delay line position.
+ * - See page 35.
+ */
+static int step_in_su(struct kenbak_data * const d)
+{
+    assert(d->state == kenbak_state_su);
+    assert(!KENBAK_INSTR_IS_TWO_BYTE(d->reg_i));
+
+    d->sig_r = KENBAK_INSTR_ONE_BYTE_SEARCH_A_OR_B(d->reg_i);
+
+    assert(d->sig_r == KENBAK_DATA_ADDR_A || d->sig_r == KENBAK_DATA_ADDR_B);
+
+    // In reality, waiting for CM, here.
+    //
+    d->state = kenbak_state_sv;
+    return 1;
+}
+
 /** Just waits for start button to be released.
  * 
  * - See page 37.
@@ -864,11 +883,11 @@ static int step_in_defined_state(struct kenbak_data * const d)
             break;
         }
 
-        //case kenbak_state_su: // SD -^I3*^I2-> SU (^I2*^I1 in emulator..)
-        //{
-        //    c = step_in_su(d);
-        //    break;
-        //}
+        case kenbak_state_su: // SD -^I3*^I2-> SU (^I2*^I1 in emulator..)
+        {
+            c = step_in_su(d);
+            break;
+        }
 
         case kenbak_state_qb: // QC -GO-> QB
         {
