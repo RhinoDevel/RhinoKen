@@ -162,9 +162,15 @@ static int step_in_sb(struct kenbak_data * const d)
     assert(d->state == kenbak_state_sb);
     assert(d->sig_r == KENBAK_DATA_ADDR_P); // See SA.
 
-    // PF => Four is to be added to the P register.
-    // PO => One is to be added to the P register.
-    // PT => Two is to be added to the P register.
+    // PF => Four is to be added to the P register:
+    //       Only SKP 0 and SKP 1, if condition is true.
+    // PT => Two is to be added to the P register:
+    //       All two-byte instructions, but SKP 0 and SKP 1, if condition is
+    //       true AND probably something special with jump instructions..?
+    // PO => One is to be added to the P register:
+    //       All one-byte instructions (even HALT).
+    // 
+    // - What about JPD, JPI, JMD and JMI, if jump condition is true?
     //
     uint8_t const inc = 1; // TODO: Replace this with the length of the last instruction!
 
@@ -822,7 +828,7 @@ static int step_in_defined_state(struct kenbak_data * const d)
 
     switch(d->state)
     {
-        case kenbak_state_sa: // ... -> SA
+        case kenbak_state_sa: // SL, SN, SS, SV, SY or SZ -> SA
         {
             c = step_in_sa(d);
             break;
