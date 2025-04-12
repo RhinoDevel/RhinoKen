@@ -528,10 +528,32 @@ static int step_in_sv(struct kenbak_data * const d)
 
     if(instr_type == kenbak_instr_type_misc)
     {
+        // !IO
+
         d->state = kenbak_state_sa; // Done for HALT and NOOP.
         return 1;
     }
+
+    // IO
+
+    assert(instr_type == kenbak_instr_type_shift_rot);
     d->state = kenbak_state_sw; // Will execute shifts or rotates.
+    return 1;
+}
+
+/** Shifts and rotates are executed here.
+ * 
+ * - Takes one byte time.
+ * - See page 35.
+ */
+static int step_in_sw(struct kenbak_data * const d)
+{
+    assert( // See SV.
+        kenbak_instr_get_type(d->reg_i) == kenbak_instr_type_shift_rot);
+
+    // TODO: Implement shift and rotate!
+
+    d->state = kenbak_state_sx;
     return 1;
 }
 
@@ -924,6 +946,11 @@ static int step_in_defined_state(struct kenbak_data * const d)
         case kenbak_state_sv: // SU -CM-> SV
         {
             c = step_in_sv(d);
+            break;
+        }
+        case kenbak_state_sw: // SV -IO-> SW
+        {
+            c = step_in_sw(d);
             break;
         }
 
