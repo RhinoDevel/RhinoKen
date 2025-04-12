@@ -625,6 +625,42 @@ static int step_in_sw(struct kenbak_data * const d)
     return 1;
 }
 
+/**
+ * - Byte time count depends on delay line position.
+ * - See page 35.
+ */
+static int step_in_sx(struct kenbak_data * const d)
+{
+    assert(d->state == kenbak_state_sx);
+
+    d->sig_r = KENBAK_INSTR_ONE_BYTE_SEARCH_A_OR_B(d->reg_i);
+
+    assert(d->sig_r == KENBAK_DATA_ADDR_A || d->sig_r == KENBAK_DATA_ADDR_B);
+
+    // In reality, waiting for CM, here.
+    //
+    d->state = kenbak_state_sy;
+    return 1;
+}
+
+/**
+ * - See page 35.
+ */
+static int step_in_sy(struct kenbak_data * const d)
+{
+    assert(d->state == kenbak_state_sy);
+    assert(d->sig_r == KENBAK_DATA_ADDR_A || d->sig_r == KENBAK_DATA_ADDR_B);
+
+    // W holds the shifted or rotated value that also originated in A or B.
+    //
+    mem_write(d, d->sig_r, d->reg_w);
+
+    // In reality, waiting for CM, here.
+    //
+    d->state = kenbak_state_sa;
+    return 1;
+}
+
 /** Just waits for start button to be released.
  * 
  * - See page 37.
@@ -1019,6 +1055,16 @@ static int step_in_defined_state(struct kenbak_data * const d)
         case kenbak_state_sw: // SV -IO-> SW
         {
             c = step_in_sw(d);
+            break;
+        }
+        case kenbak_state_sx: // SW -> SX
+        {
+            c = step_in_sx(d);
+            break;
+        }
+        case kenbak_state_sy: // SX -CM-> SY
+        {
+            c = step_in_sy(d);
             break;
         }
 
