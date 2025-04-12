@@ -9,6 +9,30 @@
 #include "kenbak_instr.h"
 #include "kenbak_x.h"
 
+static uint8_t get_rotated_left(uint8_t const val, int const places)
+{
+    assert(1 <= places && places <= 4); // This is what the Kenbak-1 supports.
+
+    // (76543210 << 1) | (76543210 >> (8 - 1)) = 6543210x | xxxxxxx7 = 65432107
+    // (76543210 << 2) | (76543210 >> (8 - 2)) = 543210xx | xxxxxx76 = 54321076
+    // (76543210 << 3) | (76543210 >> (8 - 3)) = 43210xxx | xxxxx765 = 43210765
+    // (76543210 << 4) | (76543210 >> (8 - 4)) = 3210xxxx | xxxx7654 = 32107654
+
+    return (val << places) | (val >> (8 - places));
+}
+
+static uint8_t get_rotated_right(uint8_t const val, int const places)
+{
+    assert(1 <= places && places <= 4); // This is what the Kenbak-1 supports.
+
+    // (76543210 >> 1) | (76543210 << (8 - 1)) = x7654321 | 0xxxxxxx = 07654321
+    // (76543210 >> 2) | (76543210 << (8 - 2)) = xx765432 | 10xxxxxx = 10765432
+    // (76543210 >> 3) | (76543210 << (8 - 3)) = xxx76543 | 210xxxxx = 21076543
+    // (76543210 >> 4) | (76543210 << (8 - 4)) = xxxx7654 | 3210xxxx = 32107654
+
+    return (val >> places) | (val << (8 - places));
+}
+
 // *****************************************************************************
 // *** READ-TO AND WRITE-FROM MEMORY                                         ***
 // *****************************************************************************
@@ -522,7 +546,7 @@ static int step_in_sv(struct kenbak_data * const d)
 
     // Transfer content of A or B to W:
     //
-    d->reg_i = mem_read(d, d->sig_r);
+    d->reg_w = mem_read(d, d->sig_r);
 
     enum kenbak_instr_type const instr_type = kenbak_instr_get_type(d->reg_i);
 
@@ -548,10 +572,53 @@ static int step_in_sv(struct kenbak_data * const d)
  */
 static int step_in_sw(struct kenbak_data * const d)
 {
-    assert( // See SV.
-        kenbak_instr_get_type(d->reg_i) == kenbak_instr_type_shift_rot);
+    // See SU:
+    //
+    assert(d->sig_r == KENBAK_INSTR_ONE_BYTE_SEARCH_A_OR_B(d->reg_i));
+    assert(d->sig_r == KENBAK_DATA_ADDR_A || d->sig_r == KENBAK_DATA_ADDR_B);
 
-    // TODO: Implement shift and rotate!
+    // See SV:
+    //
+    assert(kenbak_instr_get_type(d->reg_i) == kenbak_instr_type_shift_rot);
+    assert(d->reg_w == mem_read(d, d->sig_r));
+
+    // W already holds the content loaded from A or B.
+
+    // 76 543 210
+    //
+    uint8_t const kind = d->reg_w >> 6;
+    uint8_t places = (d->reg_w >> 3) & 3; // 0 means 4!
+    
+    if(places == 0)
+    {
+        places = 4;
+    }
+    assert(1 <= places && places <= 4);
+
+    switch(kind)
+    {
+        case 0: // Right shift.
+        {
+            d->reg_w = d->reg_w >> places;
+            break;
+        }
+        case 1: // Right rotate.
+        {
+            d->reg_w = get_rotated_right(d->reg_w, places);
+            break;
+        }
+        case 2: // Left shift.
+        {
+            d->reg_w = d->reg_w << places;
+            break;
+        }
+        default: // 3 = Left rotate.
+        {
+            assert(kind == 3);
+            d->reg_w = get_rotated_left(d->reg_w, places);
+            break;
+        }
+    }
 
     d->state = kenbak_state_sx;
     return 1;
