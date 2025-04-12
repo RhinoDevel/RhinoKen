@@ -569,6 +569,7 @@ static int step_in_sv(struct kenbak_data * const d)
  * 
  * - Takes one byte time.
  * - See page 35.
+ * - Also see PRM, page 12.
  */
 static int step_in_sw(struct kenbak_data * const d)
 {
