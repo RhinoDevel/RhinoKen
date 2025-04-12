@@ -225,7 +225,7 @@ static int step_in_sd(struct kenbak_data * const d)
 {
     assert(d->state == kenbak_state_sd);
     assert(d->reg_w == mem_read(d, KENBAK_DATA_ADDR_P)); // See SB.
-    assert(d->reg_w == d->sig_r); // See SC.
+    assert(d->sig_r == d->reg_w); // See SC.
 
     // Transfer first byte of to-be-executed instruction to I register:
     //
@@ -505,6 +505,33 @@ static int step_in_su(struct kenbak_data * const d)
     // In reality, waiting for CM, here.
     //
     d->state = kenbak_state_sv;
+    return 1;
+}
+
+/**
+ * - See page 35.
+ */
+static int step_in_sv(struct kenbak_data * const d)
+{
+    assert(d->state == kenbak_state_sv);
+
+    // See SU:
+    //
+    assert(d->sig_r == KENBAK_INSTR_ONE_BYTE_SEARCH_A_OR_B(d->reg_i));
+    assert(d->sig_r == KENBAK_DATA_ADDR_A || d->sig_r == KENBAK_DATA_ADDR_B);
+
+    // Transfer content of A or B to W:
+    //
+    d->reg_i = mem_read(d, d->sig_r);
+
+    enum kenbak_instr_type const instr_type = kenbak_instr_get_type(d->reg_i);
+
+    if(instr_type == kenbak_instr_type_misc)
+    {
+        d->state = kenbak_state_sa; // Done for HALT and NOOP.
+        return 1;
+    }
+    d->state = kenbak_state_sw; // Will execute shifts or rotates.
     return 1;
 }
 
@@ -892,6 +919,11 @@ static int step_in_defined_state(struct kenbak_data * const d)
         case kenbak_state_su: // SD -^I3*^I2-> SU (^I2*^I1 in emulator..)
         {
             c = step_in_su(d);
+            break;
+        }
+        case kenbak_state_sv: // SU -CM-> SV
+        {
+            c = step_in_sv(d);
             break;
         }
 
