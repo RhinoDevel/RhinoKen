@@ -70,8 +70,8 @@ struct kenbak_data
     enum kenbak_x sig_x;
 
     // R = Serial signal, "holds" the address for read or write.
-    //     When R0 to R6 equal L0 to L6, the data for the desired address will be
-    //     at the input and output of the memory at NEXT byte time.
+    //     When R0 to R6 equal L0 to L6, the data for the desired address will
+    //     be at the input and output of the memory at NEXT byte time.
     //     R7 is used to determine A7 (delay line select signal).
     // ^R = Desired address in logic complement form.
     //
