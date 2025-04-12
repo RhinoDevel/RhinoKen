@@ -55,7 +55,7 @@ enum kenbak_instr_type
 
     kenbak_instr_type_shift_rot = 0001, // E.g. RS-A by 4.
 
-    kenbak_instr_type_misc      = 0000  // E.g. HALT.
+    kenbak_instr_type_misc      = 0000  // HALT and NOOP.
 };
 
 enum kenbak_addr_mode kenbak_instr_get_addr_mode(uint8_t const first_byte);
