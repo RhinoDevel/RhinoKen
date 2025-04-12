@@ -655,9 +655,7 @@ static int step_in_sy(struct kenbak_data * const d)
     //
     mem_write(d, d->sig_r, d->reg_w);
 
-    // In reality, waiting for CM, here.
-    //
-    d->state = kenbak_state_sa;
+    d->state = kenbak_state_sa; // Done for rotate/shift instructions.
     return 1;
 }
 
