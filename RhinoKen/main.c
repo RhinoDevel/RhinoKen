@@ -172,7 +172,16 @@ static void update_input(struct kenbak_input * const input)
 		return;
 	}
 
-	// TODO: Add 'K' for run/start and 'L' for run/stop!
+	if(is_key_down('K'))
+	{
+		input->but_run_start = true;
+		return;
+	}
+	if(is_key_down('L'))
+	{
+		input->but_run_stop = true;
+		return;
+	}
 }
 
 int main()
@@ -207,7 +216,7 @@ int main()
 		// There is NO guarantee about this when running in a multitasking
 		// environment:
 		//
-		assert((double)cur_interval / (double)MT_UPDATE_INTERVAL_MS < 1.5);
+		//assert((double)cur_interval / (double)MT_UPDATE_INTERVAL_MS < 1.5);
 
 		last = cur;
 
