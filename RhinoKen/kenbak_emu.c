@@ -212,6 +212,13 @@ static int step_in_sb(struct kenbak_data * const d)
         // Last instruction was a halt or stop button was pressed.
 
         d->state = kenbak_state_qc;
+
+        // Disabling ED here to prevent overwrite that would happen, if ED was
+        // triggered by a HALT instruction (and not the run stop button), also
+        // see update_input_signals():
+        //
+        d->sig_ed = false;
+
         return 1;
     }
 
@@ -552,7 +559,12 @@ static int step_in_sv(struct kenbak_data * const d)
 
     if(instr_type == kenbak_instr_type_misc)
     {
-        // !IO
+        // ^IO
+
+        if(KENBAK_INSTR_IS_HALT(d->reg_i))
+        {
+            d->sig_ed = true;
+        }
 
         d->state = kenbak_state_sa; // Done for HALT and NOOP.
         return 1;
@@ -892,7 +904,12 @@ static void update_input_signals(struct kenbak_data * const d)
     d->sig_da = d->input.but_address_display;
     d->sig_dd = d->input.but_memory_read;
     d->sig_ea = d->input.but_address_set;
-    d->sig_ed = d->input.but_run_stop; // TODO: ED is also true, if last instruction was halt (prevent overwrite)!
+
+    // Never disabling ED here to prevent overwrite, if cause is HALT
+    // instruction and not the run stop button, also see step_in_sb():
+    //
+    d->sig_ed = d->sig_ed || d->input.but_run_stop;
+    
     d->sig_en = d->input.but_memory_store;
     d->sig_go = d->input.but_run_start;
 }
