@@ -23,6 +23,10 @@
 //
 #define KENBAK_INSTR_IS_BIT(instr_byte) (2 == (7 & (instr_byte)))
 
+// Is it a halt instruction (see PRM, page 24)?
+//
+#define KENBAK_INSTR_IS_HALT(instr_byte) (0 == (0307 & (instr_byte)))
+
 // Get the address to search for, if a single byte instruction is currently
 // being processed (for other instructions, this will FAIL; see PRM, page 12 and
 // 13):
