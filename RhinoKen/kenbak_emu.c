@@ -1055,7 +1055,7 @@ static int step_in_defined_state(struct kenbak_data * const d)
             c = step_in_sw(d);
             break;
         }
-        case kenbak_state_sx: // SW -> SX
+        case kenbak_state_sx: // SW -1-> SX
         {
             c = step_in_sx(d);
             break;
