@@ -134,6 +134,8 @@ static void init_signals(struct kenbak_data * const d)
     d->sig_x = kenbak_x_none;
 
     d->sig_r = 0;
+
+    d->sig_inc = 0;
 }
 
 static void init_mem(struct kenbak_data * const d)
@@ -185,23 +187,14 @@ static int step_in_sb(struct kenbak_data * const d)
 {
     assert(d->state == kenbak_state_sb);
     assert(d->sig_r == KENBAK_DATA_ADDR_P); // See SA.
-
-    // PF => Four is to be added to the P register:
-    //       Only SKP 0 and SKP 1, if condition is true.
-    // PT => Two is to be added to the P register:
-    //       All two-byte instructions, but SKP 0 and SKP 1, if condition is
-    //       true AND probably something special with jump instructions..?
-    // PO => One is to be added to the P register:
-    //       All one-byte instructions (even HALT).
-    // 
-    // - What about JPD, JPI, JMD and JMI, if jump condition is true?
-    //
-    uint8_t const inc = 1; // TODO: Replace this with the length of the last instruction! Additionally must be set to zero when entering automatic mode!
+    assert(0 <= d->sig_inc && d->sig_inc != 3 && d->sig_inc <= 4);
 
     // Address of the last executed instruction plus the length of that
     // instruction, to get the address of the next instruction to be executed:
     //
-    uint8_t const val = mem_read(d, d->sig_r) + inc;
+    uint8_t const val = mem_read(d, d->sig_r) + d->sig_inc;
+
+    d->sig_inc = 255; // Sets to invalid to indicate that it needs to be set.
 
     mem_write(d, d->sig_r, val);
 
@@ -267,6 +260,12 @@ static int step_in_sd(struct kenbak_data * const d)
         d->state = kenbak_state_se; // Will read second byte of transfer.
         return 1;
     }
+
+    // It is a single byte instruction.
+
+    assert(d->sig_inc == 255); // Must still be unset/invalid, here.
+    d->sig_inc = 1; // All one byte instructions cause a P = P + 1.
+
     d->state = kenbak_state_su; // Will seek A or B register.
     return 1;
 }
@@ -599,8 +598,8 @@ static int step_in_sw(struct kenbak_data * const d)
 
     // 76 543 210
     //
-    uint8_t const kind = d->reg_w >> 6;
-    uint8_t places = (d->reg_w >> 3) & 3; // 0 means 4!
+    uint8_t const kind = (d->reg_i >> 6) & 1;
+    uint8_t places = (d->reg_i >> 3) & 3; // 0 means 4!
     
     if(places == 0)
     {
@@ -695,6 +694,8 @@ static int step_in_qb(struct kenbak_data * const d)
 static int step_in_qc(struct kenbak_data * const d)
 {
     assert(d->state == kenbak_state_qc);
+
+    d->sig_inc = 0; // Add zero bytes to P for first instruction on next run.
 
     d->reg_i = mem_read(d, KENBAK_DATA_ADDR_INPUT);
 

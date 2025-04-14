@@ -77,6 +77,20 @@ struct kenbak_data
     //
     uint8_t sig_r;
 
+    // The count of bytes that need to be added to P during state SB.
+    //
+    // PF => Four is to be added to the P register:
+    //       Only SKP 0 and SKP 1, if condition is true.
+    // PT => Two is to be added to the P register:
+    //       All two-byte instructions, but SKP 0 and SKP 1, if condition is
+    //       true AND probably something special with jump instructions..?
+    // PO => One is to be added to the P register:
+    //       All one-byte instructions (even HALT).
+    // 
+    // - What about JPD, JPI, JMD and JMI, if jump condition is true?
+    //
+    uint8_t sig_inc;
+
     // I0/I7 = Generally the I register is the instruction register. I7 is the
     //         most significant bit. As an instruction register, I holds the
     //         first byte of an instruction. (14)
