@@ -196,7 +196,7 @@ static int step_in_sb(struct kenbak_data * const d)
     // 
     // - What about JPD, JPI, JMD and JMI, if jump condition is true?
     //
-    uint8_t const inc = 1; // TODO: Replace this with the length of the last instruction!
+    uint8_t const inc = 1; // TODO: Replace this with the length of the last instruction! Additionally must be set to zero when entering automatic mode!
 
     // Address of the last executed instruction plus the length of that
     // instruction, to get the address of the next instruction to be executed:
