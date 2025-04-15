@@ -480,8 +480,10 @@ static int step_in_sk(struct kenbak_data * const d)
 }
 
 /**
- * - Takes one byte time for non-bit manipulation instructions. Probably two for
- *   the other instructions(?).
+ * - Takes one byte time for non-bit manipulation instructions.
+ *   Assuming one byte time for SKIP, too.
+ *   For SET, this should take the maximum byte time (128 bytes), if I am
+ *   correct..
  * - See page 32.
  */
 static int step_in_sl(struct kenbak_data * const d)
@@ -505,47 +507,56 @@ static int step_in_sl(struct kenbak_data * const d)
     // SL. For the Skip on 0 and Skip on 1 instructions, the P register
     // increment control is set as necessary."
 
+    d->state = kenbak_state_sa; // SL -BM-> SA
+
     int const bit_pos = (d->reg_i >> 3) & 7;
-    
+
     mask = 1 << bit_pos;
     if((d->reg_i & 0x80) != 0)
     {
         // SKIP
 
+        bool const bit_is_set = (d->reg_w & mask) != 0;
+
+        assert(d->sig_inc == 255);
+        d->sig_inc = 2;
         if((d->reg_i & 0x40) != 0)
         {
             // Skip on 1.
 
-            // TODO: Implement!
+            if(bit_is_set)
+            {
+                d->sig_inc += 2; // Always skips two bytes.
+            }
         }
         else
         {
             // Skip on 0.
 
-            // TODO: Implement!
+            if(!bit_is_set)
+            {
+                d->sig_inc += 2; // Always skips two bytes.
+            }
         }
+        return 1; // Assuming one byte time, here.
+    }
 
-        // TODO: Implement!
+    // SET
+
+    assert(d->sig_inc == 255);
+    d->sig_inc = 2;
+
+    if((d->reg_i & 0x40) != 0)
+    {
+        d->reg_w = d->reg_w | mask; // Sets to 1.
     }
     else
     {
-        // SET
-
-        assert(d->sig_inc == 255);
-        d->sig_inc = 2;
-
-        if((d->reg_i & 0x40) != 0)
-        {
-            d->reg_w = d->reg_w | mask; // Sets to 1.
-        }
-        else
-        {
-            d->reg_w = d->reg_w & (uint8_t)~mask; // Sets to 0.
-        }
+        d->reg_w = d->reg_w & (uint8_t)~mask; // Sets to 0.
     }
 
-    d->state = kenbak_state_sa; // SL -BM-> SA
-    return 1;
+    mem_write(d, d->sig_r, d->reg_w);
+    return 1; // Not correct, see comment above.
 }
 
 /**
