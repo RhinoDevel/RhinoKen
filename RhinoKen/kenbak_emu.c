@@ -489,9 +489,11 @@ static int step_in_sl(struct kenbak_data * const d)
     assert(d->state == kenbak_state_sl);
     assert(d->sig_r == d->reg_w);
 
+    uint8_t mask = 0;
+
     enum kenbak_instr_type const instr_type = kenbak_instr_get_type(d->reg_i);
 
-    d->reg_w = mem_read(d, d->sig_r); // Loads operand for ^BM instructions.
+    d->reg_w = mem_read(d, d->sig_r); // Loads operand.
 
     if(instr_type != kenbak_instr_type_bit)
     {
@@ -499,11 +501,48 @@ static int step_in_sl(struct kenbak_data * const d)
         return 1;
     }
 
-    // TODO: Implement bit manipulation:
-    //
     // "For the Set 0 or Set 1 instructions, the designated bit is set during
     // SL. For the Skip on 0 and Skip on 1 instructions, the P register
     // increment control is set as necessary."
+
+    int const bit_pos = (d->reg_i >> 3) & 7;
+    
+    mask = 1 << bit_pos;
+    if((d->reg_i & 0x80) != 0)
+    {
+        // SKIP
+
+        if((d->reg_i & 0x40) != 0)
+        {
+            // Skip on 1.
+
+            // TODO: Implement!
+        }
+        else
+        {
+            // Skip on 0.
+
+            // TODO: Implement!
+        }
+
+        // TODO: Implement!
+    }
+    else
+    {
+        // SET
+
+        assert(d->sig_inc == 255);
+        d->sig_inc = 2;
+
+        if((d->reg_i & 0x40) != 0)
+        {
+            d->reg_w = d->reg_w | mask; // Sets to 1.
+        }
+        else
+        {
+            d->reg_w = d->reg_w & (uint8_t)~mask; // Sets to 0.
+        }
+    }
 
     d->state = kenbak_state_sa; // SL -BM-> SA
     return 1;
