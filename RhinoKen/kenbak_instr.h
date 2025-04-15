@@ -11,7 +11,7 @@
 
 // See PRM, page 24:
 //
-#define KENBAK_INSTR_IS_TWO_BYTE(instr_byte) (2 < (7 & (instr_byte)))
+#define KENBAK_INSTR_IS_TWO_BYTE(instr_byte) (1 < (7 & (instr_byte)))
 
 // Get the addressing mode for add/sub/load/store OR or/and/lneg instructions
 // (for other instructions, this will FAIL):
