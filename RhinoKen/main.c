@@ -195,6 +195,40 @@ int main()
 	print_keys();
 
 	d->input.switch_power_on = true;
+
+// TODO: Debugging:
+//
+#ifndef NDEBUG
+	{
+		int i = 3;
+
+		d->delay_line_0[0]   = 0xAA; // A = 10101010
+		d->delay_line_0[i++] = 0x04; // P = 4
+		d->delay_line_0[i++] = 0x80; // NOOP
+
+		d->delay_line_0[i++] = 0xCA; // 11001010 SKIP ON BIT 1 BEING 1.
+		d->delay_line_0[i++] = 0x00; // Address of A.
+		d->delay_line_0[i++] = 0x00; // HALT (shall be skipped).
+		d->delay_line_0[i++] = 0x00; // HALT (shall be skipped).
+
+		d->delay_line_0[i++] = 0xC9; // 11001001 SHIFT A 1 TO THE LEFT
+		                             // => A = 01010101
+		d->delay_line_0[i++] = 0x7A; // 01111010 SET BIT 7 TO 1
+		d->delay_line_0[i++] = 0x00; // Address of A.
+		                             // => A = 11010101
+
+		d->delay_line_0[i++] = 0xAA; // 10101010 SKIP ON BIT 5 BEING 0.
+		d->delay_line_0[i++] = 0x00; // Address of A.
+		d->delay_line_0[i++] = 0x00; // HALT (shall be skipped).
+		d->delay_line_0[i++] = 0x00; // HALT (shall be skipped).
+
+		d->delay_line_0[i++] = 0x32; // 00110010 SET BIT 6 TO 0
+		d->delay_line_0[i++] = 0x00; // Address of A.
+								     // => A = 10010101
+		d->delay_line_0[i++] = 0x00; // HALT
+	}
+#endif //NDEBUG
+
 	kenbak_emu_step(d);
 
 	// The "game" loop:
