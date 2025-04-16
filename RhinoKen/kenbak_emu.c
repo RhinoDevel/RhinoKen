@@ -654,9 +654,9 @@ static int step_in_sn(struct kenbak_data * const d)
             assert(false); // TODO: Implement!
             break;
         }
-        case kenbak_instr_type_load:
+        case kenbak_instr_type_load: // See PRM, page 6.
         {
-            assert(false); // TODO: Implement!
+            result = d->reg_w;
             break;
         }
         case kenbak_instr_type_and:
@@ -683,6 +683,9 @@ static int step_in_sn(struct kenbak_data * const d)
     }
 
     mem_write(d, d->sig_r, result);
+
+    assert(d->sig_inc == 255);
+    d->sig_inc = 2;
 
     d->state = kenbak_state_sa;
     return 1;
