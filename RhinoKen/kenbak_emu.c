@@ -634,6 +634,10 @@ static int step_in_sm(struct kenbak_data * const d)
 static int step_in_sn(struct kenbak_data * const d)
 {
     assert(d->state == kenbak_state_sn);
+    assert(
+        d->sig_r == KENBAK_DATA_ADDR_A
+        || d->sig_r == KENBAK_DATA_ADDR_B
+        || d->sig_r == KENBAK_DATA_ADDR_X);
 
     enum kenbak_instr_type const instr_type = kenbak_instr_get_type(d->reg_i);
 
@@ -659,19 +663,25 @@ static int step_in_sn(struct kenbak_data * const d)
             result = d->reg_w;
             break;
         }
-        case kenbak_instr_type_and:
+        case kenbak_instr_type_and: // See PRM, page 7.
         {
-            assert(false); // TODO: Implement!
+            assert(d->sig_r == KENBAK_DATA_ADDR_A);
+
+            result = d->reg_w & reg_content;
             break;
         }
-        case kenbak_instr_type_or:
+        case kenbak_instr_type_or: // See PRM, page 7.
         {
-            assert(false); // TODO: Implement!
+            assert(d->sig_r == KENBAK_DATA_ADDR_A);
+
+            result = d->reg_w | reg_content;
             break;
         }
-        case kenbak_instr_type_lneg:
+        case kenbak_instr_type_lneg: // See PRM, page 8.
         {
-            assert(false); // TODO: Implement!
+            assert(d->sig_r == KENBAK_DATA_ADDR_A);
+
+            result = -d->reg_w; // "Arithmetic complement" // TODO: Verify!
             break;
         }
 
