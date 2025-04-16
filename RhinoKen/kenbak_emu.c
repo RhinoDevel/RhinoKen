@@ -626,9 +626,66 @@ static int step_in_sm(struct kenbak_data * const d)
     return 1;
 }
 
+/** Instructions changing A, B or X do so during SN. W contains the operand.
+ * 
+ * - Byte time count depends on delay line position.
+ * - See page 33.
+ */
 static int step_in_sn(struct kenbak_data * const d)
 {
-    return 0 // TODO: Implement!
+    assert(d->state == kenbak_state_sn);
+
+    enum kenbak_instr_type const instr_type = kenbak_instr_get_type(d->reg_i);
+
+    // A, B or X is read from memory (see SM):
+    //
+    uint8_t const reg_content = mem_read(d, d->sig_r);
+    uint8_t result = 0;
+
+    switch(instr_type)
+    {
+        case kenbak_instr_type_add:
+        {
+            assert(false); // TODO: Implement!
+            break;
+        }
+        case kenbak_instr_type_sub:
+        {
+            assert(false); // TODO: Implement!
+            break;
+        }
+        case kenbak_instr_type_load:
+        {
+            assert(false); // TODO: Implement!
+            break;
+        }
+        case kenbak_instr_type_and:
+        {
+            assert(false); // TODO: Implement!
+            break;
+        }
+        case kenbak_instr_type_or:
+        {
+            assert(false); // TODO: Implement!
+            break;
+        }
+        case kenbak_instr_type_lneg:
+        {
+            assert(false); // TODO: Implement!
+            break;
+        }
+
+        default:
+        {
+            assert(false);
+            return 0; // Error!
+        }
+    }
+
+    mem_write(d, d->sig_r, result);
+
+    d->state = kenbak_state_sa;
+    return 1;
 }
 
 /**
