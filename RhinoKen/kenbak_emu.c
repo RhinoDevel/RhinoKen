@@ -9,6 +9,10 @@
 #include "kenbak_instr.h"
 #include "kenbak_x.h"
 
+// *****************************************************************************
+// *** HELPER FUNCTIONS                                                      ***
+// *****************************************************************************
+
 static uint8_t get_rotated_left(uint8_t const val, int const places)
 {
     assert(1 <= places && places <= 4); // This is what the Kenbak-1 supports.
