@@ -565,12 +565,70 @@ static int step_in_sl(struct kenbak_data * const d)
 
 /**
  * - See page 32.
+ * - Byte time count depends on delay line position.
+ * - W already contains the operand for instructions that will modify A, B or X.
  */
 static int step_in_sm(struct kenbak_data * const d)
 {
     assert(d->state == kenbak_state_sm);
+    assert(KENBAK_INSTR_IS_TWO_BYTE(d->reg_i));
 
-    return 1; // TODO: Implement!
+    d->sig_r = KENBAK_INSTR_TWO_BYTE_SEARCH_A_B_OR_X(d->reg_i);
+
+    assert(
+        d->sig_r == KENBAK_DATA_ADDR_A
+            || d->sig_r == KENBAK_DATA_ADDR_B
+            || d->sig_r == KENBAK_DATA_ADDR_X);
+
+    enum kenbak_instr_type const instr_type = kenbak_instr_get_type(d->reg_i);
+
+    if(instr_type == kenbak_instr_type_jump)
+    {
+        // JPD, JPI, JMD and JMI.
+
+        // W already contains the target address (which may be the jump or the
+        // "mark" address, see PRM, page 33).
+
+        // In reality, waiting for CM, here.
+        //
+        d->state = kenbak_state_sz;
+        return 1;
+    }
+
+    if(instr_type == kenbak_instr_type_store)
+    {
+        // STORE
+
+        // W already contains the address where the data is to be stored
+        // (see PRM, page 33).
+
+        // In reality, waiting for CM, here.
+        //
+        d->state = kenbak_state_sp;
+        return 1;
+    }
+
+    // ADD, SUB, LOAD, AND, OR and LNEG.
+
+    assert(
+        instr_type == kenbak_instr_type_add
+        || instr_type == kenbak_instr_type_sub
+        || instr_type == kenbak_instr_type_load
+        || instr_type == kenbak_instr_type_and
+        || instr_type == kenbak_instr_type_or
+        || instr_type == kenbak_instr_type_lneg);
+
+    // W already contains the operand (see PRM, page 32).
+
+    // In reality, waiting for CM, here.
+    //
+    d->state = kenbak_state_sn;
+    return 1;
+}
+
+static int step_in_sn(struct kenbak_data * const d)
+{
+    return 0 // TODO: Implement!
 }
 
 /**
@@ -1109,6 +1167,11 @@ static int step_in_defined_state(struct kenbak_data * const d)
         case kenbak_state_sm: // ... -> ...
         {
             c = step_in_sm(d);
+            break;
+        }
+        case kenbak_state_sn: // SM -^TM*^J*CM-> SN
+        {
+            c = step_in_sn(d);
             break;
         }
 
