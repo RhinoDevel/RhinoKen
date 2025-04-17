@@ -32,7 +32,7 @@
 // 13):
 //
 #define KENBAK_INSTR_ONE_BYTE_SEARCH_A_OR_B(first_byte) \
-    (((first_byte) >> 4) & 1)
+    (((first_byte) >> 5) & 1)
 //
 // Hard coded, see KENBAK_DATA_ADDR_A & KENBAK_DATA_ADDR_B.
 
@@ -42,7 +42,7 @@
 // 3 => A (also)
 //
 #define KENBAK_INSTR_TWO_BYTE_SEARCH_A_B_OR_X(first_byte) \
-    (((first_byte) >> 5) % 3)
+    (((first_byte) >> 6) % 3)
 //
 // Hard coded, see KENBAK_DATA_ADDR_A, KENBAK_DATA_ADDR_B and
 // KENBAK_DATA_ADDR_X.
