@@ -292,7 +292,10 @@ static int step_in_se(struct kenbak_data * const d)
     enum kenbak_addr_mode const addr_mode =
         kenbak_instr_get_addr_mode(d->reg_i);
 
-    if(addr_mode == kenbak_addr_mode_constant)
+    enum kenbak_instr_type const instr_type = kenbak_instr_get_type(d->reg_i);
+
+    if(addr_mode == kenbak_addr_mode_constant
+        && instr_type == kenbak_instr_type_store)
     {
         // The instruction is store constant/immediate, load ADDRESS of the
         // second byte of the instruction into W register:
