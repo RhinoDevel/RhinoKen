@@ -756,6 +756,11 @@ static int step_in_ss(struct kenbak_data * const d)
 
     mem_write(d, d->sig_r, d->reg_i);
 
+    // TODO: Correct to do this here?
+    //
+    assert(d->sig_inc == 255);
+    d->sig_inc = 2;
+
     d->state = kenbak_state_sa;
     return 1;
 }
