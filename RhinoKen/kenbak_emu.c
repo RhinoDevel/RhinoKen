@@ -744,6 +744,22 @@ static int step_in_sr(struct kenbak_data * const d)
     return 1;
 }
 
+/** Write content of register I to memory.
+ * 
+ *  - Takes one byte time.
+ *  - See page 34.
+ */
+static int step_in_ss(struct kenbak_data * const d)
+{
+    assert(d->state == kenbak_state_ss);
+    assert(d->sig_r == d->reg_w); // See SR.
+
+    mem_write(d, d->sig_r, d->reg_i);
+
+    d->state = kenbak_state_sa;
+    return 1;
+}
+
 /**
  * - Byte time count depends on delay line position.
  * - See page 35.
@@ -1295,6 +1311,11 @@ static int step_in_defined_state(struct kenbak_data * const d)
         case kenbak_state_sr: // SP, SQ -> SR
         {
             c = step_in_sr(d);
+            break;
+        }
+        case kenbak_state_ss: // SR -CM-> SS
+        {
+            c = step_in_ss(d);
             break;
         }
 
