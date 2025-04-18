@@ -229,6 +229,9 @@ int main()
 		d->delay_line_0[i++] = 0xD3; // 11010011 AND.
 		d->delay_line_0[i++] = 0xC9; // 11001001
 		                             // => A = 10000001
+		d->delay_line_0[i++] = 0xC3; // 11000011 OR.
+		d->delay_line_0[i++] = 0x98; // 10011000
+		                             // => A = 10011001
 		d->delay_line_0[i++] = 0x00; // HALT
 	}
 #endif //NDEBUG
