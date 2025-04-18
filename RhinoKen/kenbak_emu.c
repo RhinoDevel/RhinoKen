@@ -729,6 +729,22 @@ static int step_in_sp(struct kenbak_data * const d)
 }
 
 /**
+ *  - Byte time count depends on delay line position.
+ *  - See page 34.
+ */
+static int step_in_sr(struct kenbak_data * const d)
+{
+    assert(d->state == kenbak_state_sr);
+
+    d->sig_r = d->reg_w;
+
+    // In reality, waiting for CM, here.
+    //
+    d->state = kenbak_state_ss;
+    return 1;
+}
+
+/**
  * - Byte time count depends on delay line position.
  * - See page 35.
  */
@@ -1271,9 +1287,14 @@ static int step_in_defined_state(struct kenbak_data * const d)
             c = step_in_sn(d);
             break;
         }
-        case kenbak_state_sp: // SM -TM*CM-> SR
+        case kenbak_state_sp: // SM -TM*CM-> SP
         {
             c = step_in_sp(d);
+            break;
+        }
+        case kenbak_state_sr: // SP, SQ -> SR
+        {
+            c = step_in_sr(d);
             break;
         }
 
