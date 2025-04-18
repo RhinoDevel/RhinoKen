@@ -705,6 +705,30 @@ static int step_in_sn(struct kenbak_data * const d)
 }
 
 /**
+ * - See page 33.
+ */
+static int step_in_sp(struct kenbak_data * const d)
+{
+    assert(d->state == kenbak_state_sp);
+    assert(KENBAK_INSTR_IS_TWO_BYTE(d->reg_i));
+    assert(
+        d->sig_r == KENBAK_DATA_ADDR_A
+        || d->sig_r == KENBAK_DATA_ADDR_B
+        || d->sig_r == KENBAK_DATA_ADDR_X);
+    assert(kenbak_instr_get_type(d->reg_i) == kenbak_instr_type_store);
+
+    // W already contains the address where the data is to be stored (see PRM,
+    // page 33).
+
+    // Load the byte to be stored in memory to the I register:
+    //
+    d->reg_i = mem_read(d, d->sig_r);
+
+    d->state = kenbak_state_sr;
+    return 1; // Unsure, if this really takes a single byte time.
+}
+
+/**
  * - Byte time count depends on delay line position.
  * - See page 35.
  */
@@ -1245,6 +1269,11 @@ static int step_in_defined_state(struct kenbak_data * const d)
         case kenbak_state_sn: // SM -^TM*^J*CM-> SN
         {
             c = step_in_sn(d);
+            break;
+        }
+        case kenbak_state_sp: // SM -TM*CM-> SR
+        {
+            c = step_in_sp(d);
             break;
         }
 
