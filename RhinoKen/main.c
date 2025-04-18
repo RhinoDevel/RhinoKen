@@ -200,18 +200,19 @@ int main()
 //
 #ifndef NDEBUG
 	{
-		int i = 3;
+		int i = KENBAK_DATA_ADDR_P;
 
-		d->delay_line_0[0]   = 0xAA; // A = 10101010
 		d->delay_line_0[i++] = 0x04; // P = 4
+		assert(i == 0x04);
 		d->delay_line_0[i++] = 0x80; // NOOP
-
+		d->delay_line_0[i++] = 0x13; // 00010011 LOAD immediate/constant to A.
+		d->delay_line_0[i++] = 0xAA; // 10101010
 		d->delay_line_0[i++] = 0xCA; // 11001010 SKIP ON BIT 1 BEING 1.
 		d->delay_line_0[i++] = 0x00; // Address of A.
 		d->delay_line_0[i++] = 0x00; // HALT (shall be skipped).
 		d->delay_line_0[i++] = 0x00; // HALT (shall be skipped).
 
-		d->delay_line_0[i++] = 0xC9; // 11001001 SHIFT A 1 TO THE LEFT
+		d->delay_line_0[i++] = 0xC9; // 11001001 SHIFT A 1 TO THE LEFT.
 		                             // => A = 01010101
 		d->delay_line_0[i++] = 0x7A; // 01111010 SET BIT 7 TO 1
 		d->delay_line_0[i++] = 0x00; // Address of A.
@@ -222,9 +223,12 @@ int main()
 		d->delay_line_0[i++] = 0x00; // HALT (shall be skipped).
 		d->delay_line_0[i++] = 0x00; // HALT (shall be skipped).
 
-		d->delay_line_0[i++] = 0x32; // 00110010 SET BIT 6 TO 0
+		d->delay_line_0[i++] = 0x32; // 00110010 SET BIT 6 TO 0.
 		d->delay_line_0[i++] = 0x00; // Address of A.
 								     // => A = 10010101
+		d->delay_line_0[i++] = 0xD3; // 11010011 AND.
+		d->delay_line_0[i++] = 0xC9; // 11001001
+		                             // => A = 10000001
 		d->delay_line_0[i++] = 0x00; // HALT
 	}
 #endif //NDEBUG
