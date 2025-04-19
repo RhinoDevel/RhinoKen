@@ -661,12 +661,12 @@ static int step_in_sn(struct kenbak_data * const d)
 
     switch(instr_type)
     {
-        case kenbak_instr_type_add:
+        case kenbak_instr_type_add: // See PRM, page 5.
         {
             assert(false); // TODO: Implement!
             break;
         }
-        case kenbak_instr_type_sub:
+        case kenbak_instr_type_sub: // See PRM, page 5.
         {
             assert(false); // TODO: Implement!
             break;
@@ -694,7 +694,7 @@ static int step_in_sn(struct kenbak_data * const d)
         {
             assert(d->sig_r == KENBAK_DATA_ADDR_A);
 
-            result = -d->reg_w; // "Arithmetic complement" // TODO: Verify!
+            result = -d->reg_w; // "Arithmetic complement" // TODO: Verify (e.g. -128 => -128)!
             break;
         }
 
