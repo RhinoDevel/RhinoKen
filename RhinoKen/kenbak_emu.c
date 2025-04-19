@@ -663,7 +663,24 @@ static int step_in_sn(struct kenbak_data * const d)
     {
         case kenbak_instr_type_add: // See PRM, page 5.
         {
-            assert(false); // TODO: Implement!
+            uint16_t const buf = (uint16_t)d->reg_w + (uint16_t)reg_content;
+            uint8_t overflow_and_carry = 0;
+
+            if(255 < buf)
+            {
+                overflow_and_carry = overflow_and_carry & 1; // Hard-coded 1.
+            }
+
+            result = (uint8_t)buf;
+
+            // TODO: Verify that this is correctly implemented:
+            //
+            if(d->reg_w <= 0xCF && 0xCF < result)
+            {
+                overflow_and_carry = overflow_and_carry & 2; // Hard-coded 2.
+            }
+
+            mem_write(d, KENBAK_DATA_ADDR_OC_FOR(d->sig_r), overflow_and_carry);
             break;
         }
         case kenbak_instr_type_sub: // See PRM, page 5.
