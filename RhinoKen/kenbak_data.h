@@ -17,9 +17,26 @@
 #define KENBAK_DATA_ADDR_X 2 // X "register".
 #define KENBAK_DATA_ADDR_P 3 // P "register".
 #define KENBAK_DATA_ADDR_OUTPUT 128 // Output "register".
+
+// See PRM, page 2:
+// 
+// - Bit 0 is the overflow flag/bit OF.
+// - Bit 1 is the carry flag/bit CA.
+// 
+// - OF and CA are set on ADD and SUBTRACT, only.
+// - When set, the other six bits are set to zero.
+// 
+// See PRM, page 3:
+// 
+// - Overflow is based on the signed representations of the bytes,
+//   -128 to +127 (10000000 to 01111111).
+// - Carry is the overflow for positive integer representations of the bytes,
+//   0 to +255 (00000000 to 11111111).
+//
 #define KENBAK_DATA_ADDR_OC_A 129 // Overflow and carry for the A "register".
 #define KENBAK_DATA_ADDR_OC_B 130 // Overflow and carry for the B "register".
 #define KENBAK_DATA_ADDR_OC_X 131 // Overflow and carry for the X "register".
+
 #define KENBAK_DATA_ADDR_INPUT 255 // Input "register".
 
 struct kenbak_data
