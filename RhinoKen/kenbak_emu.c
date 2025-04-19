@@ -602,6 +602,16 @@ static int step_in_sm(struct kenbak_data * const d)
     {
         // STORE
 
+        if(kenbak_instr_get_addr_mode(d->reg_i) == kenbak_addr_mode_constant)
+        {
+            // See exception for store immediate/constant in SE (not quite sure,
+            // if this is the best way to emulate this..).
+
+            d->reg_w = mem_read(d, d->reg_w);
+        }
+        //
+        // Otherwise:
+        // 
         // W already contains the address where the data is to be stored
         // (see PRM, page 33).
 
@@ -756,7 +766,7 @@ static int step_in_ss(struct kenbak_data * const d)
 
     mem_write(d, d->sig_r, d->reg_i);
 
-    // TODO: Correct to do this here?
+    // Maybe there is a better position in code to do this?
     //
     assert(d->sig_inc == 255);
     d->sig_inc = 2;
