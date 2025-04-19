@@ -675,7 +675,7 @@ static int step_in_sn(struct kenbak_data * const d)
 
             // TODO: Verify that this is correctly implemented:
             //
-            if(d->reg_w <= 0xCF && 0xCF < result)
+            if(d->reg_w <= 0x7F && 0x7F < result)
             {
                 overflow_and_carry = overflow_and_carry & 2; // Hard-coded 2.
             }
