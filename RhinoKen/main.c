@@ -233,7 +233,7 @@ int main()
 		d->delay_line_0[i++] = 0x98; // 10011000
 		                             // => A = 10011001
 		d->delay_line_0[i++] = 0x1B; // 00011011 STORE immediate from A.
-		d->delay_line_0[i++] = 0xF0;
+		d->delay_line_0[i++] = 0xF0; // => 0xF0 = A = 10011001
 		d->delay_line_0[i++] = 0x00; // HALT
 	}
 #endif //NDEBUG
