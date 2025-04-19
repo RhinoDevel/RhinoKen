@@ -33,9 +33,11 @@
 // - Carry is the overflow for positive integer representations of the bytes,
 //   0 to +255 (00000000 to 11111111).
 //
-#define KENBAK_DATA_ADDR_OC_A 129 // Overflow and carry for the A "register".
-#define KENBAK_DATA_ADDR_OC_B 130 // Overflow and carry for the B "register".
-#define KENBAK_DATA_ADDR_OC_X 131 // Overflow and carry for the X "register".
+#define KENBAK_DATA_ADDR_OC_FOR(addr_reg) (129 + (addr_reg))
+//
+#define KENBAK_DATA_ADDR_OC_A KENBAK_DATA_ADDR_OC_FOR(KENBAK_DATA_ADDR_A)
+#define KENBAK_DATA_ADDR_OC_B KENBAK_DATA_ADDR_OC_FOR(KENBAK_DATA_ADDR_B)
+#define KENBAK_DATA_ADDR_OC_X KENBAK_DATA_ADDR_OC_FOR(KENBAK_DATA_ADDR_X)
 
 #define KENBAK_DATA_ADDR_INPUT 255 // Input "register".
 
