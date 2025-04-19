@@ -641,7 +641,7 @@ static int step_in_sm(struct kenbak_data * const d)
 
 /** Instructions changing A, B or X do so during SN. W contains the operand.
  * 
- * - Byte time count depends on delay line position.
+ * - Takes one byte time.
  * - See page 33.
  */
 static int step_in_sn(struct kenbak_data * const d)
