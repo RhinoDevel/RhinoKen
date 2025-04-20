@@ -658,12 +658,21 @@ static int step_in_sn(struct kenbak_data * const d)
     //
     uint8_t const reg_content = mem_read(d, d->sig_r);
     uint8_t result = 0;
+    bool do_sub = false;
 
     switch(instr_type)
     {
+        case kenbak_instr_type_sub: // See PRM, page 5.
+        {
+            do_sub = true; // Falls through.
+        }
         case kenbak_instr_type_add: // See PRM, page 5.
         {
-            uint16_t const buf = (uint16_t)d->reg_w + (uint16_t)reg_content;
+            uint16_t const buf =
+                (uint16_t)(do_sub
+                    ? (uint8_t)(-d->reg_w) // Use two's complement.
+                    : d->reg_w)
+                + (uint16_t)reg_content;
             uint8_t overflow_and_carry = 0;
 
             if(255 < buf)
@@ -675,17 +684,12 @@ static int step_in_sn(struct kenbak_data * const d)
 
             // TODO: Verify that this is correctly implemented:
             //
-            if(d->reg_w <= 0x7F && 0x7F < result)
+            if(d->reg_w <= 127 && 127 < result)
             {
                 overflow_and_carry = overflow_and_carry & 2; // Hard-coded 2.
             }
 
             mem_write(d, KENBAK_DATA_ADDR_OC_FOR(d->sig_r), overflow_and_carry);
-            break;
-        }
-        case kenbak_instr_type_sub: // See PRM, page 5.
-        {
-            assert(false); // TODO: Implement!
             break;
         }
         case kenbak_instr_type_load: // See PRM, page 6.
