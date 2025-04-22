@@ -232,6 +232,13 @@ int main()
 		d->delay_line_0[i++] = 0xC3; // 11000011 OR.
 		d->delay_line_0[i++] = 0x98; // 10011000
 		                             // => A = 10011001
+		d->delay_line_0[i++] = 0x0B; // 00001011 SUB immediate from A.
+		d->delay_line_0[i++] = 0x99; // 10011001
+		                             // => A = 00000000
+		d->delay_line_0[i++] = 0x03; // 00000011 ADD immediate to A.
+		d->delay_line_0[i++] = 0x01; // => A = 00000001
+		d->delay_line_0[i++] = 0xDC; // 11011100 LNEG memory A to A.
+		d->delay_line_0[i++] = KENBAK_DATA_ADDR_A; // => A = 11111111
 		d->delay_line_0[i++] = 0x1B; // 00011011 STORE immediate from A.
 		d->delay_line_0[i++] = KENBAK_DATA_ADDR_OUTPUT;
 		d->delay_line_0[i++] = 0x00; // HALT
