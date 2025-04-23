@@ -651,7 +651,9 @@ static int step_in_sn(struct kenbak_data * const d)
     assert(
         d->sig_r == KENBAK_DATA_ADDR_A
         || d->sig_r == KENBAK_DATA_ADDR_B
-        || d->sig_r == KENBAK_DATA_ADDR_X);
+        || d->sig_r == KENBAK_DATA_ADDR_X
+    
+        || d->sig_r == KENBAK_DATA_ADDR_P); // P in case of a jump.
 
     enum kenbak_instr_type const instr_type = kenbak_instr_get_type(d->reg_i);
 
@@ -691,11 +693,17 @@ static int step_in_sn(struct kenbak_data * const d)
             }
 
             mem_write(d, KENBAK_DATA_ADDR_OC_FOR(d->sig_r), overflow_and_carry);
+
+            assert(d->sig_inc == 255);
+            d->sig_inc = 2;
             break;
         }
         case kenbak_instr_type_load: // See PRM, page 6.
         {
             result = d->reg_w;
+
+            assert(d->sig_inc == 255);
+            d->sig_inc = 2;
             break;
         }
         case kenbak_instr_type_and: // See PRM, page 7.
@@ -703,6 +711,9 @@ static int step_in_sn(struct kenbak_data * const d)
             assert(d->sig_r == KENBAK_DATA_ADDR_A);
 
             result = d->reg_w & reg_content;
+
+            assert(d->sig_inc == 255);
+            d->sig_inc = 2;
             break;
         }
         case kenbak_instr_type_or: // See PRM, page 7.
@@ -710,6 +721,9 @@ static int step_in_sn(struct kenbak_data * const d)
             assert(d->sig_r == KENBAK_DATA_ADDR_A);
 
             result = d->reg_w | reg_content;
+
+            assert(d->sig_inc == 255);
+            d->sig_inc = 2;
             break;
         }
         case kenbak_instr_type_lneg: // See PRM, page 8.
@@ -717,6 +731,19 @@ static int step_in_sn(struct kenbak_data * const d)
             assert(d->sig_r == KENBAK_DATA_ADDR_A);
 
             result = -d->reg_w; // "Arithmetic complement" // TODO: Verify (e.g. -128 => -128)!
+
+            assert(d->sig_inc == 255);
+            d->sig_inc = 2;
+            break;
+        }
+        case kenbak_instr_type_jump:
+        {
+            assert(d->sig_r == KENBAK_DATA_ADDR_P);
+
+            result = d->reg_w; // W holds the jump destination address.
+
+            assert(d->sig_inc == 255);
+            d->sig_inc = 0;
             break;
         }
 
@@ -729,8 +756,7 @@ static int step_in_sn(struct kenbak_data * const d)
 
     mem_write(d, d->sig_r, result);
 
-    assert(d->sig_inc == 255);
-    d->sig_inc = 2;
+    assert(d->sig_inc != 255);
 
     d->state = kenbak_state_sa;
     return 1;
