@@ -8,6 +8,7 @@
 #include "kenbak_data.h"
 #include "kenbak_instr.h"
 #include "kenbak_x.h"
+#include "kenbak_jmp_cond.h"
 
 // *****************************************************************************
 // *** HELPER FUNCTIONS                                                      ***
@@ -298,7 +299,7 @@ static int step_in_se(struct kenbak_data * const d)
         && instr_type == kenbak_instr_type_store)
     {
         // The instruction is store constant/immediate, load ADDRESS of the
-        // second byte of the instruction into W register:
+        // second byte of the instruction into W register (also see SM):
 
         d->reg_w = d->sig_r + 1;
     }
@@ -947,6 +948,99 @@ static int step_in_sy(struct kenbak_data * const d)
     return 1;
 }
 
+/**
+ * - Takes one byte time.
+ * - See page 34.
+ */
+static int step_in_sz(struct kenbak_data * const d)
+{
+    assert(d->state == kenbak_state_sz);
+    assert(kenbak_instr_get_type(d->reg_i) == kenbak_instr_type_jump);
+    assert(
+        d->sig_r == KENBAK_DATA_ADDR_A
+        || d->sig_r == KENBAK_DATA_ADDR_B
+        || d->sig_r == KENBAK_DATA_ADDR_X);
+
+    bool cond_is_true = false;
+    uint8_t const reg_sel = (0xC0 & d->reg_i) >> 6;
+
+    if(reg_sel == 3) // Unconditional jump, if bit 7 and 6 are both set.
+    {
+        d->state = kenbak_state_st; // Jump!
+        return 1;
+    }
+
+    // A, B or X need to be checked.
+
+    assert(reg_sel == d->sig_r);
+
+    uint8_t const reg_val = mem_read(d, d->sig_r);
+
+    uint8_t const cond = (7 & reg_val);
+
+    assert(3 <= cond); // See possible jump conditions (from 3 to 7).
+
+    assert(!cond_is_true);
+    switch((enum kenbak_jmp_cond)cond)
+    {
+        case kenbak_jmp_cond_non_zero:
+        {
+            if(reg_val != 0)
+            {
+                cond_is_true = true;
+            }
+            break;
+        }
+        case kenbak_jmp_cond_zero:
+        {
+            if(reg_val == 0)
+            {
+                cond_is_true = true;
+            }
+            break;
+        }
+        case kenbak_jmp_cond_neg:
+        {
+            if((0x80 & reg_val) != 0) // Is 7th bit set?
+            {
+                cond_is_true = true;
+            }
+            break;
+        }
+        case kenbak_jmp_cond_pos:
+        {
+            if((0x80 & reg_val) == 0) // Is 7th bit unset?
+            {
+                cond_is_true = true;
+            }
+            break;
+        }
+        case kenbak_jmp_cond_pos_non_zero:
+        {
+            if((0x80 & reg_val) == 0 && (0x7F & reg_val) != 0)
+            {
+                cond_is_true = true;
+            }
+            break;
+        }
+
+        default:
+        {
+            assert(false); // Must not get here.
+            return 0;
+        }
+    }
+
+    if(cond_is_true)
+    {
+        d->state = kenbak_state_st; // Jump!
+        return 1;
+    }
+
+    d->state = kenbak_state_sa; // NO jump.
+    return 1;
+}
+
 /** Just waits for start button to be released.
  * 
  * - See page 37.
@@ -1344,6 +1438,7 @@ static int step_in_defined_state(struct kenbak_data * const d)
             c = step_in_sp(d);
             break;
         }
+        // TODO: Implement SQ!
         case kenbak_state_sr: // SP, SQ -> SR
         {
             c = step_in_sr(d);
@@ -1354,7 +1449,7 @@ static int step_in_defined_state(struct kenbak_data * const d)
             c = step_in_ss(d);
             break;
         }
-
+        // TODO: Implement ST!
         case kenbak_state_su: // SD -^I3*^I2-> SU (^I2*^I1 in emulator..)
         {
             c = step_in_su(d);
@@ -1378,6 +1473,11 @@ static int step_in_defined_state(struct kenbak_data * const d)
         case kenbak_state_sy: // SX -CM-> SY
         {
             c = step_in_sy(d);
+            break;
+        }
+        case kenbak_state_sz: // SM -> SZ
+        {
+            c = step_in_sz(d);
             break;
         }
 
