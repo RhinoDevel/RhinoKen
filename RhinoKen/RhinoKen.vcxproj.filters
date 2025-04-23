@@ -50,5 +50,8 @@
     <ClInclude Include="kenbak_x.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="kenbak_jmp_cond.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

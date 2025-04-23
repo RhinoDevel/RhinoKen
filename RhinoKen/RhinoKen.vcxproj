@@ -137,6 +137,7 @@
     <ClInclude Include="kenbak_emu.h" />
     <ClInclude Include="kenbak_input.h" />
     <ClInclude Include="kenbak_instr.h" />
+    <ClInclude Include="kenbak_jmp_cond.h" />
     <ClInclude Include="kenbak_output.h" />
     <ClInclude Include="kenbak_data.h" />
     <ClInclude Include="kenbak_state.h" />
