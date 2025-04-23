@@ -799,6 +799,32 @@ static int step_in_ss(struct kenbak_data * const d)
 
 /**
  * - Byte time count depends on delay line position.
+ * - See page 34.
+ */
+static int step_in_st(struct kenbak_data * const d)
+{
+    assert(d->state == kenbak_state_st);
+    assert(kenbak_instr_get_type(d->reg_i) == kenbak_instr_type_jump);
+
+    d->sig_r = KENBAK_DATA_ADDR_P;
+
+    // Without "marking" => SN
+
+    // With "marking" => SQ
+
+    // In reality, waiting for CM, here.
+
+    if((0x10 & d->reg_i) == 0) // See PRM, page 9 (bit 4 decides about marking).
+    {
+        d->state = kenbak_state_sn; // Jump (without Mark).
+        return 1;
+    }
+    d->state = kenbak_state_sq; // Jump and Mark.
+    return 1;
+}
+
+/**
+ * - Byte time count depends on delay line position.
  * - See page 35.
  */
 static int step_in_su(struct kenbak_data * const d)
@@ -1449,7 +1475,11 @@ static int step_in_defined_state(struct kenbak_data * const d)
             c = step_in_ss(d);
             break;
         }
-        // TODO: Implement ST!
+        case kenbak_state_st: // SZ -JC-> ST
+        {
+            c = step_in_st(d);
+            break;
+        }
         case kenbak_state_su: // SD -^I3*^I2-> SU (^I2*^I1 in emulator..)
         {
             c = step_in_su(d);
