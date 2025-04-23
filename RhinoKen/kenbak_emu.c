@@ -1454,7 +1454,7 @@ static int step_in_defined_state(struct kenbak_data * const d)
             c = step_in_sm(d);
             break;
         }
-        case kenbak_state_sn: // SM -^TM*^J*CM-> SN
+        case kenbak_state_sn: // SM -^TM*^J*CM-> SN or ST-JP CM-> SN
         {
             c = step_in_sn(d);
             break;
