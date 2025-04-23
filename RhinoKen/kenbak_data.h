@@ -126,6 +126,10 @@ struct kenbak_data
     //
     uint8_t reg_w;
 
+    // This indicates, if the memory shall initially be filled with random
+    // values or with zeros.
+    bool randomize_memory;
+
     uint8_t delay_line_0[KENBAK_DATA_DELAY_LINE_SIZE];
     uint8_t delay_line_1[KENBAK_DATA_DELAY_LINE_SIZE];
 };

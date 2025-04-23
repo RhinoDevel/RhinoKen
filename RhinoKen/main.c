@@ -186,7 +186,7 @@ static void update_input(struct kenbak_input * const input)
 
 int main()
 {
-	struct kenbak_data * const d = kenbak_emu_create();
+	struct kenbak_data * const d = kenbak_emu_create(true);
 	uint32_t last = 0;
 
 	set_cursor_visibility(false);

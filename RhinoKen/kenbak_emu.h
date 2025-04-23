@@ -180,6 +180,6 @@ void kenbak_emu_delete(struct kenbak_data * const d);
 
 int kenbak_emu_step(struct kenbak_data * const d);
 
-struct kenbak_data * kenbak_emu_create();
+struct kenbak_data * kenbak_emu_create(bool const randomize_memory);
 
 #endif //KENBAK_EMU

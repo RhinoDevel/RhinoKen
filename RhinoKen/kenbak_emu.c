@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <time.h>
 
 #include "kenbak_emu.h"
 #include "kenbak_data.h"
@@ -145,9 +146,16 @@ static void init_signals(struct kenbak_data * const d)
 
 static void init_mem(struct kenbak_data * const d)
 {
+    if(d->randomize_memory)
+    {
+        srand((unsigned int)time(NULL));
+    }
+
     for(int i = 0; i < 2 * KENBAK_DATA_DELAY_LINE_SIZE; ++i)
     {
-        mem_write(d, i, 0);
+        uint8_t const val = d->randomize_memory ? (rand() % 256) : 0;
+
+        mem_write(d, i, val);
     }
 }
 
@@ -1630,11 +1638,19 @@ void kenbak_emu_delete(struct kenbak_data * const d)
     free(d);
 }
 
-struct kenbak_data * kenbak_emu_create()
+struct kenbak_data * kenbak_emu_create(bool const randomize_memory)
 {
-    struct kenbak_data * const ret_val = malloc(sizeof *ret_val);
+    struct kenbak_data * const d = malloc(sizeof *d);
 
-    init(ret_val);
+    if(d == NULL)
+    {
+        assert(false); // Must not get here.
+        return NULL;
+    }
 
-    return ret_val;
+    d->randomize_memory = randomize_memory;
+
+    init(d);
+
+    return d;
 }
