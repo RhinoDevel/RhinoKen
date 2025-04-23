@@ -742,8 +742,7 @@ static int step_in_sn(struct kenbak_data * const d)
 
             result = d->reg_w; // W holds the jump destination address.
 
-            assert(d->sig_inc == 255);
-            d->sig_inc = 0;
+            assert(d->sig_inc == 0); // See SZ.
             break;
         }
 
@@ -756,9 +755,8 @@ static int step_in_sn(struct kenbak_data * const d)
 
     mem_write(d, d->sig_r, result);
 
-    assert(d->sig_inc != 255);
-
     d->state = kenbak_state_sa;
+    assert(d->sig_inc != 255);
     return 1;
 }
 
@@ -1019,6 +1017,8 @@ static int step_in_sz(struct kenbak_data * const d)
     if(reg_sel == 3) // Unconditional jump, if bit 7 and 6 are both set.
     {
         d->state = kenbak_state_st; // Jump!
+        assert(d->sig_inc == 255);
+        d->sig_inc = 0;
         return 1;
     }
 
@@ -1028,7 +1028,7 @@ static int step_in_sz(struct kenbak_data * const d)
 
     uint8_t const reg_val = mem_read(d, d->sig_r);
 
-    uint8_t const cond = (7 & reg_val);
+    uint8_t const cond = (7 & d->reg_i);
 
     assert(3 <= cond); // See possible jump conditions (from 3 to 7).
 
@@ -1086,10 +1086,14 @@ static int step_in_sz(struct kenbak_data * const d)
     if(cond_is_true)
     {
         d->state = kenbak_state_st; // Jump!
+        assert(d->sig_inc == 255);
+        d->sig_inc = 0;
         return 1;
     }
 
     d->state = kenbak_state_sa; // NO jump.
+    assert(d->sig_inc == 255);
+    d->sig_inc = 2;
     return 1;
 }
 
