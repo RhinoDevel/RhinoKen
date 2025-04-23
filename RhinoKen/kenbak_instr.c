@@ -35,9 +35,14 @@ enum kenbak_addr_mode kenbak_instr_get_addr_mode(uint8_t const first_byte)
 
         if(mid_sign_oct % 2 == 0)
         {
-            return kenbak_addr_mode_memory; // Direct/memory addressing.
+            // Direct addressing.
+
+            return kenbak_addr_mode_constant/*kenbak_addr_mode_memory*/;
         }
-        return kenbak_addr_mode_indirect;
+
+        // Indirect addressing.
+
+        return kenbak_addr_mode_memory/*kenbak_addr_mode_indirect*/;
     }
 
     // Add/sub/load/store or or/and/lneg instruction.
