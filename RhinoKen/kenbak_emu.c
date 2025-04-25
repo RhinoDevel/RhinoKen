@@ -307,7 +307,8 @@ static int step_in_se(struct kenbak_data * const d)
         && instr_type == kenbak_instr_type_store)
     {
         // The instruction is store constant/immediate, load ADDRESS of the
-        // second byte of the instruction into W register (also see SM):
+        // second byte of the instruction into W register (this following second
+        // byte will be overwritten in-place by the store immediate operation):
 
         d->reg_w = d->sig_r + 1;
     }
@@ -611,16 +612,6 @@ static int step_in_sm(struct kenbak_data * const d)
     {
         // STORE
 
-        if(kenbak_instr_get_addr_mode(d->reg_i) == kenbak_addr_mode_constant)
-        {
-            // See exception for store immediate/constant in SE (not quite sure,
-            // if this is the best way to emulate this..).
-
-            d->reg_w = mem_read(d, d->reg_w);
-        }
-        //
-        // Otherwise:
-        // 
         // W already contains the address where the data is to be stored
         // (see PRM, page 33).
 
@@ -934,7 +925,7 @@ static int step_in_sw(struct kenbak_data * const d)
 
     // 76 543 210
     //
-    uint8_t const kind = (d->reg_i >> 6) & 1;
+    uint8_t const kind = d->reg_i >> 6;
     uint8_t places = (d->reg_i >> 3) & 3; // 0 means 4!
     
     if(places == 0)
@@ -960,11 +951,16 @@ static int step_in_sw(struct kenbak_data * const d)
             d->reg_w = d->reg_w << places;
             break;
         }
-        default: // 3 = Left rotate.
+        case 3: // Left rotate.
         {
-            assert(kind == 3);
             d->reg_w = get_rotated_left(d->reg_w, places);
             break;
+        }
+
+        default: // Must not get here.
+        {
+            assert(false);
+            return 0; // Error!
         }
     }
 
