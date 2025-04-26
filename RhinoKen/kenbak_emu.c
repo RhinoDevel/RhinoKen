@@ -173,7 +173,7 @@ static void init(struct kenbak_data * const d)
 // *** THE STATES OF THE KENBAK-1 STATE MACHINE                              ***
 // *****************************************************************************
 
-/** Locates the P register in memory.
+/** Start of the next instruction. Locates the P register in memory.
  *
  *  - Byte time count depends on delay line position. 
  *  - See page 28.
@@ -190,8 +190,8 @@ static int step_in_sa(struct kenbak_data * const d)
     return 1;
 }
 
-/** Increments the program counter (P register); fills W register with resulting
- *  address of next instruction; decides, if QC or SC is next.
+/** Increments the program counter (P register). Fills W register with resulting
+ *  address of next instruction. Decides, if QC or SC is next.
  * 
  *  - Lasts one byte time.
  *  - See page 28.
@@ -252,7 +252,7 @@ static int step_in_sc(struct kenbak_data * const d)
     return 1;
 }
 
-/** Transfers next instruction's first byte to register I; selects next state
+/** Transfers next instruction's first byte to register I. Selects next state
  *  based on the next instruction's length. 
  * 
  *  - Lasts one byte time.
@@ -320,37 +320,42 @@ static int step_in_se(struct kenbak_data * const d)
         d->reg_w = mem_read(d, d->sig_r + 1);
     }
 
-    switch(addr_mode)
+    if(addr_mode == kenbak_addr_mode_indirect
+        || addr_mode == kenbak_addr_mode_indirect_indexed)
     {
-        case kenbak_addr_mode_indirect: // Falls through.
-        case kenbak_addr_mode_indirect_indexed:
-        {
-            d->state = kenbak_state_sf;
-            return 1;
-        }
-        case kenbak_addr_mode_indexed: // SE -^IND*DEX-> SH
-        {
-            d->state = kenbak_state_sh;
-            return 1;
-        }
-        case kenbak_addr_mode_memory:
-        {
-            d->state = kenbak_state_sk;
-            return 1;
-        }
-        case kenbak_addr_mode_constant:
-        {
-            d->state = kenbak_state_sm;
-            return 1;
-        }
-
-        case kenbak_addr_mode_none: // Falls through.
-        default:
-        {
-            assert(false);
-            return 0; // Error!
-        }
+        d->state = kenbak_state_sf; // SE -JI+IND-> SF
+        return 1;
     }
+
+    if(addr_mode == kenbak_addr_mode_indexed)
+    {
+        d->state = kenbak_state_sh; // SE -^IND*DEX-> SH
+        return 1;
+    }
+    
+    if(addr_mode == kenbak_addr_mode_constant
+        || instr_type == kenbak_instr_type_jump // Must be JD, here.
+        || (instr_type == kenbak_instr_type_store // TM
+                && addr_mode == kenbak_addr_mode_memory))
+    {
+        // No operand to be found.
+
+        assert(
+            instr_type != kenbak_instr_type_jump
+                || ((d->reg_i >> 3) & 7) == 4 // JPD
+                || ((d->reg_i >> 3) & 7) == 6); // JMD
+
+        d->state = kenbak_state_sm; // SE -IMMED+JD+TM*MEM-> SM
+        return 1;
+    }
+
+    assert(instr_type == kenbak_instr_type_bit // BM
+        || (instr_type != kenbak_instr_type_store // ^TM
+                && addr_mode == kenbak_addr_mode_memory // MEM
+                && instr_type != kenbak_instr_type_jump)); // ^J
+
+    d->state = kenbak_state_sk; // SE -BM+^TM*MEM*^J-> SK
+    return 1;
 }
 
 /** Searches for the indirect address which is already in register W (see SE).
@@ -1445,12 +1450,12 @@ static int step_in_defined_state(struct kenbak_data * const d)
         }
         case kenbak_state_sd: // SC -CM-> SD
         {
-            c = step_in_sd(d);
+            c = step_in_sd(d); // I <- Next instr. first byte.
             break;
         }
         case kenbak_state_se: // SD -I3+I2-> SE (I2+I1 in emulator..)
         {
-            c = step_in_se(d);
+            c = step_in_se(d); // Gets here for TWO byte instructions.
             break;
         }
         case kenbak_state_sf: // SE -JI+IND-> SF
@@ -1516,7 +1521,7 @@ static int step_in_defined_state(struct kenbak_data * const d)
         }
         case kenbak_state_su: // SD -^I3*^I2-> SU (^I2*^I1 in emulator..)
         {
-            c = step_in_su(d);
+            c = step_in_su(d); // Gets here for ONE byte instructions.
             break;
         }
         case kenbak_state_sv: // SU -CM-> SV
