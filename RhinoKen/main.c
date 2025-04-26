@@ -202,60 +202,21 @@ int main()
 	{
 		int i = KENBAK_DATA_ADDR_P;
 
-		d->delay_line_0[i++] = 0x04; // P = 4
-		assert(i == 0x04);
-		d->delay_line_0[i++] = 0x13; // 00010011 LOAD immediate/constant to A.
-		d->delay_line_0[i++] = 0x00; // 00000000
-		d->delay_line_0[i++] = 0x03; // 00000011 ADD immediate to A.
-		d->delay_line_0[i++] = 0x01; // => A = A + 1
-		d->delay_line_0[i++] = 0x1B; // 00011011 STORE immediate from A.
-		d->delay_line_0[i++] = KENBAK_DATA_ADDR_OUTPUT;
-		d->delay_line_0[i++] = 0x93; // 10010011 LOAD immediate/constant to X.
-		d->delay_line_0[i++] = 0x2F; //
-		d->delay_line_0[i++] = 0x8B; // 10001011 SUB immediate/constant from X.
-		d->delay_line_0[i++] = 0x01; // 00000001
-		d->delay_line_0[i++] = 0xA3; // 10100011 JPD-X on non-zero.
-		d->delay_line_0[i++] = 0x0C; // 00001100
-		d->delay_line_0[i++] = 0xE7; // 11100111 JPD unconditional, direct.
-		d->delay_line_0[i++] = 6;
-		//d->delay_line_0[i++] = 0x80; // NOOP
-		//d->delay_line_0[i++] = 0x13; // 00010011 LOAD immediate/constant to A.
-		//d->delay_line_0[i++] = 0xAA; // 10101010
-		//d->delay_line_0[i++] = 0xCA; // 11001010 SKIP ON BIT 1 BEING 1.
-		//d->delay_line_0[i++] = 0x00; // Address of A.
-		//d->delay_line_0[i++] = 0x00; // HALT (shall be skipped).
-		//d->delay_line_0[i++] = 0x00; // HALT (shall be skipped).
+		// EX 3-1
 		//
-		//d->delay_line_0[i++] = 0xC9; // 11001001 SHIFT A 1 TO THE LEFT.
-		//                             // => A = 01010101
-		//d->delay_line_0[i++] = 0x7A; // 01111010 SET BIT 7 TO 1
-		//d->delay_line_0[i++] = 0x00; // Address of A.
-		//                             // => A = 11010101
+		// *=3
 		//
-		//d->delay_line_0[i++] = 0xAA; // 10101010 SKIP ON BIT 5 BEING 0.
-		//d->delay_line_0[i++] = 0x00; // Address of A.
-		//d->delay_line_0[i++] = 0x00; // HALT (shall be skipped).
-		//d->delay_line_0[i++] = 0x00; // HALT (shall be skipped).
-		//
-		//d->delay_line_0[i++] = 0x32; // 00110010 SET BIT 6 TO 0.
-		//d->delay_line_0[i++] = 0x00; // Address of A.
-		//						     // => A = 10010101
-		//d->delay_line_0[i++] = 0xD3; // 11010011 AND.
-		//d->delay_line_0[i++] = 0xC9; // 11001001
-		//                             // => A = 10000001
-		//d->delay_line_0[i++] = 0xC3; // 11000011 OR.
-		//d->delay_line_0[i++] = 0x98; // 10011000
-		//                             // => A = 10011001
-		//d->delay_line_0[i++] = 0x0B; // 00001011 SUB immediate from A.
-		//d->delay_line_0[i++] = 0x99; // 10011001
-		//                             // => A = 00000000
-		//d->delay_line_0[i++] = 0x03; // 00000011 ADD immediate to A.
-		//d->delay_line_0[i++] = 0x01; // => A = 00000001
-		//d->delay_line_0[i++] = 0xDC; // 11011100 LNEG memory A to A.
-		//d->delay_line_0[i++] = KENBAK_DATA_ADDR_A; // => A = 11111111
-		//d->delay_line_0[i++] = 0x1B; // 00011011 STORE immediate from A.
-		//d->delay_line_0[i++] = KENBAK_DATA_ADDR_OUTPUT;
-		d->delay_line_0[i++] = 0x00; // HALT
+		//d->delay_line_0[i++] = 0004; // 3 004 P = 4
+		//assert(i == 0x04);
+		//d->delay_line_0[i++] = 0023; // 4 023 A LOAD constant
+		//d->delay_line_0[i++] = 0000; // 5 000
+		//d->delay_line_0[i++] = 0034; // 6 034 A STORE memory
+		//d->delay_line_0[i++] = 0200; // 7 200
+		//d->delay_line_0[i++] = 0000; // 8 000 HALT 
+		//d->delay_line_0[i++] = 0003; // 9 003 A ADD constant
+		//d->delay_line_0[i++] = 0001; // A 001
+		//d->delay_line_0[i++] = 0344; // B 344 Unconditional JPD
+		//d->delay_line_0[i++] = 0006; // C 006
 	}
 #endif //NDEBUG
 
