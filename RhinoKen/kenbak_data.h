@@ -9,6 +9,7 @@
 #include "kenbak_input.h"
 #include "kenbak_output.h"
 #include "kenbak_state.h"
+#include "kenbak_x.h"
 
 #define KENBAK_DATA_DELAY_LINE_SIZE 128 // bytes
 
