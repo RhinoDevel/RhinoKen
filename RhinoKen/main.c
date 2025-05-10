@@ -234,15 +234,6 @@ int main()
 			continue; // Wait a little longer.
 		}
 
-		// TODO: Do NOT assume this, but replace MT_STEPS_PER_FRAME below with
-		//       a dynamic value instead to process the amount of steps that
-		//       fits into cur_interval!
-		//
-		// There is NO guarantee about this when running in a multitasking
-		// environment:
-		//
-		//assert((double)cur_interval / (double)MT_UPDATE_INTERVAL_MS < 1.5);
-
 		last = cur;
 
 		// Get user input:
@@ -255,11 +246,14 @@ int main()
 		update_input(&d->input);
 
 		// Let the emulator do the work that a real Kenbak-1 computer can do in
-		// the update interval timespan MT_UPDATE_INTERVAL_MS:
+		// the current update interval timespan:
 		//
-		for(int i = 0; i < MT_STEPS_PER_FRAME; ++i)
+		uint32_t const steps_per_cur_interval =
+			cur_interval / MT_UPDATE_INTERVAL_MS;
+		//
+		for(int i = 0; i < steps_per_cur_interval; ++i)
 		{
-			kenbak_emu_step(d);
+			kenbak_emu_step(d); // (returned byte time is unused..)
 		}
 
 		// Update output:
