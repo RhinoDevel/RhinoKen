@@ -789,6 +789,36 @@ static int step_in_sp(struct kenbak_data * const d)
 }
 
 /**
+ * - See page 34.
+ */
+static int step_in_sq(struct kenbak_data * const d)
+{
+    assert(d->state == kenbak_state_sq);
+    assert(KENBAK_INSTR_IS_TWO_BYTE(d->reg_i));
+
+    // Also see ST, see PRM, page 9 (bit 4 decides about marking):
+    //
+    assert((0x10 & d->reg_i) != 0);
+
+    // Also see ST:
+    //
+    assert(kenbak_instr_get_type(d->reg_i) == kenbak_instr_type_jump);
+
+    // Load the return address into the I register:
+    //
+    d->reg_i = mem_read(d, KENBAK_DATA_ADDR_P) + 2;
+    
+    // W holds the target address, set P to that target address:
+    //
+    mem_write(d, KENBAK_DATA_ADDR_P, d->reg_w);
+
+    // TODO: The P register increment control msut be set to add one, is this already done somewhere?
+
+    d->state = kenbak_state_sr;
+    return 1; // Unsure, if this really takes a single byte time.
+}
+
+/**
  *  - Byte time count depends on delay line position.
  *  - See page 34.
  */
@@ -1504,7 +1534,11 @@ static int step_in_defined_state(struct kenbak_data * const d)
             c = step_in_sp(d);
             break;
         }
-        // TODO: Implement SQ!
+        case kenbak_state_sq: // ST -JM*CM-> SR
+        {
+            c = step_in_sq(d);
+            break;
+        }
         case kenbak_state_sr: // SP, SQ -> SR
         {
             c = step_in_sr(d);
