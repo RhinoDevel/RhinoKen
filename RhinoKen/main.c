@@ -202,6 +202,25 @@ int main()
 	{
 		int i = KENBAK_DATA_ADDR_P;
 
+		//// Own: Rotate a bit, with optional inner delay loop (countdown)
+		//// 
+		//// *=3
+		////
+		//d->delay_line_0[i++] = 0004; //  3 004 P = 4
+		//d->delay_line_0[i++] = 0023; //  4 023 LOAD-A constant
+		//d->delay_line_0[i++] = 0200; //  5 - constant -
+		//d->delay_line_0[i++] = 0311; //  6 311 ROTATE_LEFT_1-A
+		//d->delay_line_0[i++] = 0034; //  7 034 STORE-A memory
+		//d->delay_line_0[i++] = 0200; //  8 - address -
+		////d->delay_line_0[i++] = 0223; //  9 223 LOAD-X constant
+		////d->delay_line_0[i++] = 0002; // 10 - constant -
+		////d->delay_line_0[i++] = 0213; // 11 213 SUB-X constant
+		////d->delay_line_0[i++] = 0001; // 12 - constant -
+		////d->delay_line_0[i++] = 0243; // 13 243 JPD-X != 0
+		////d->delay_line_0[i++] = 0013; // 14 - address -
+		//d->delay_line_0[i++] = 0343; // 15 343 JPD-Unc. "!= 0"
+		//d->delay_line_0[i++] = 0006; // 16 - address -
+
 		// EX 3-1
 		//
 		// *=3
