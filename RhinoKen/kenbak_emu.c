@@ -1285,7 +1285,8 @@ static void update_x_signal(struct kenbak_data* const d)
     {
         assert(!d->sig_dd);
         assert(d->state != kenbak_state_sa);
-        assert(!d->sig_bu && !d->sig_cl);
+        assert(!d->sig_bu);
+        assert(!d->sig_cl);
 
         d->sig_x = kenbak_x_1;
         return;
@@ -1294,7 +1295,8 @@ static void update_x_signal(struct kenbak_data* const d)
     {
         assert(!d->sig_da);
         assert(d->state != kenbak_state_sa);
-        assert(!d->sig_bu && !d->sig_cl);
+        assert(!d->sig_bu);
+        assert(!d->sig_cl);
 
         d->sig_x = kenbak_x_2;
         return;
@@ -1303,7 +1305,8 @@ static void update_x_signal(struct kenbak_data* const d)
     {
         assert(!d->sig_da);
         assert(!d->sig_dd);
-        assert(!d->sig_bu && !d->sig_cl);
+        assert(!d->sig_bu);
+        assert(!d->sig_cl);
 
         d->sig_x = kenbak_x_3;
         return;
