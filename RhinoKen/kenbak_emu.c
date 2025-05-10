@@ -1413,6 +1413,13 @@ static void update_output(struct kenbak_data * const d)
     d->output.led_bit_7 = ((d->reg_k >> 7) & 1) == 1;
 }
 
+static void update_input_signals_byte_and_x(struct kenbak_data * const d)
+{
+    update_input_signals(d);
+    update_input_byte(d);
+    update_x_signal(d);
+}
+
 /**
  * - To be called, if Kenbak-1 is in a defined state and a step shall be taken.
  */
@@ -1423,18 +1430,12 @@ static int step_in_defined_state(struct kenbak_data * const d)
 
     int c = 0;
 
-    // ***********************
-    // *** General updates ***
-    // ***********************
-
-    update_input_signals(d);
-    update_input_byte(d);
-    update_x_signal(d);
-
     switch(d->state)
     {
         case kenbak_state_sa: // SL, SN, SS, SV, SY or SZ -> SA
         {
+            update_input_signals_byte_and_x(d);
+
             c = step_in_sa(d);
             break;
         }
@@ -1552,11 +1553,15 @@ static int step_in_defined_state(struct kenbak_data * const d)
 
         case kenbak_state_qb: // QC -GO-> QB
         {
+            update_input_signals_byte_and_x(d);
+
             c = step_in_qb(d);
             break;
         }
         case kenbak_state_qc: // SB -ED-> QC or QF -^X5-> QC
         {
+            update_input_signals_byte_and_x(d);
+
             c = step_in_qc(d);
             break;
         }
@@ -1572,6 +1577,8 @@ static int step_in_defined_state(struct kenbak_data * const d)
         }
         case kenbak_state_qf: // QE -1-> QF
         {
+            update_input_signals_byte_and_x(d);
+
             c = step_in_qf(d);
             break;
         }
