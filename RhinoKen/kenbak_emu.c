@@ -784,6 +784,9 @@ static int step_in_sp(struct kenbak_data * const d)
     //
     d->reg_i = mem_read(d, d->sig_r);
 
+    assert(d->sig_inc == 255);
+    d->sig_inc = 2;
+
     d->state = kenbak_state_sr;
     return 1; // Unsure, if this really takes a single byte time.
 }
@@ -803,6 +806,8 @@ static int step_in_sq(struct kenbak_data * const d)
     // Also see ST:
     //
     assert(kenbak_instr_get_type(d->reg_i) == kenbak_instr_type_jump);
+
+    assert(d->sig_inc == 1); // See SZ.
 
     // Load the return address into the I register:
     //
@@ -846,10 +851,7 @@ static int step_in_ss(struct kenbak_data * const d)
 
     mem_write(d, d->sig_r, d->reg_i);
 
-    // Maybe there is a better position in code to do this?
-    //
-    assert(d->sig_inc == 255);
-    d->sig_inc = 2;
+    assert(d->sig_inc != 255);
 
     d->state = kenbak_state_sa;
     return 1;
@@ -863,6 +865,7 @@ static int step_in_st(struct kenbak_data * const d)
 {
     assert(d->state == kenbak_state_st);
     assert(kenbak_instr_get_type(d->reg_i) == kenbak_instr_type_jump);
+    assert(d->sig_inc != 255); // See SZ.
 
     d->sig_r = KENBAK_DATA_ADDR_P;
 
