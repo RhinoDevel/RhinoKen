@@ -267,12 +267,15 @@ int main()
 		// Let the emulator do the work that a real Kenbak-1 computer can do in
 		// the current update interval timespan:
 		//
-		uint32_t const steps_per_cur_interval =
+		uint32_t const frames_per_cur_interval =
 			cur_interval / MT_UPDATE_INTERVAL_MS;
 		//
-		for(int i = 0; i < steps_per_cur_interval; ++i)
+		for(int f = 0; f < frames_per_cur_interval; ++f)
 		{
-			kenbak_emu_step(d); // (returned byte time is unused..)
+			for(int s = 0; s < MT_STEPS_PER_FRAME; ++s)
+			{
+				kenbak_emu_step(d); // (returned byte time is unused..)
+			}
 		}
 
 		// Update output:
