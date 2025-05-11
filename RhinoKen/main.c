@@ -7,6 +7,8 @@
 #include "kenbak_emu.h"
 #include "kenbak_data.h"
 
+// See kenbak_emu.h:
+//
 #define MT_FPS 25
 #define MT_UPDATE_INTERVAL_MS (1000 / MT_FPS)
 #define MT_INSTRUCTIONS_PER_SEC 480
