@@ -24,6 +24,9 @@
     <ClCompile Include="kenbak_instr.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="kenbak_state.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kenbak_state.h">

@@ -130,6 +130,7 @@
   <ItemGroup>
     <ClCompile Include="kenbak_emu.c" />
     <ClCompile Include="kenbak_instr.c" />
+    <ClCompile Include="kenbak_state.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>

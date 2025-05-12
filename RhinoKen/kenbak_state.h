@@ -204,4 +204,6 @@ enum kenbak_state
     kenbak_state_sz = KENBAK_STATE_TYPE_SHIFTED_S | 26
 };
 
+char const * kenbak_state_get_str(enum kenbak_state const state);
+
 #endif //KENBAK_STATE
