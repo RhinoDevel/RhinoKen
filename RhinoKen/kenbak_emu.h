@@ -168,6 +168,9 @@
 //
 // X5 = EN or DA or DD (see page 25).
 
+// TODO: The 031X NOOP is implemented as 1-byte NOOP, but this is probably wrong
+//       (most likely "takes" two bytes)!
+
 #ifndef KENBAK_EMU
 #define KENBAK_EMU
 
