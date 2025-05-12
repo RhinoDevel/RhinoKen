@@ -321,7 +321,12 @@ static int step_in_se(struct kenbak_data * const d)
     }
 
     if(addr_mode == kenbak_addr_mode_indirect
-        || addr_mode == kenbak_addr_mode_indirect_indexed)
+        || addr_mode == kenbak_addr_mode_indirect_indexed
+
+        // See kenbak_instr_get_addr_mode():
+        //
+        || (addr_mode == kenbak_addr_mode_memory
+                && instr_type == kenbak_instr_type_jump))
     {
         d->state = kenbak_state_sf; // SE -JI+IND-> SF
         return 1;
@@ -408,10 +413,11 @@ static int step_in_sg(struct kenbak_data * const d)
             enum kenbak_instr_type const instr_type = kenbak_instr_get_type(
                 d->reg_i);
 
-            // Jump indirect or store without indexing. SG -JI+TM*^DEX-> SM
+            assert(instr_type != kenbak_instr_type_jump);
+
+            // Store without indexing. SG -JI+TM*^DEX-> SM
             //
-            if(instr_type == kenbak_instr_type_jump
-                || instr_type == kenbak_instr_type_store)
+            if(instr_type == kenbak_instr_type_store)
             {
                 d->state = kenbak_state_sm;
                 return 1;
@@ -423,9 +429,18 @@ static int step_in_sg(struct kenbak_data * const d)
             return 1;
         }
 
+        case kenbak_addr_mode_memory: // See kenbak_instr_get_addr_mode().
+        {
+            assert(kenbak_instr_get_type(d->reg_i) == kenbak_instr_type_jump);
+
+            // Indirect jump. SG -JI+TM*^DEX-> SM
+            //
+            d->state = kenbak_state_sm;
+            return 1;
+        }
+
         case kenbak_addr_mode_none: // Falls through..
         case kenbak_addr_mode_constant: // Falls through..
-        case kenbak_addr_mode_memory: // Falls through..
         case kenbak_addr_mode_indexed: // Falls through..
         default:
         {
@@ -444,8 +459,9 @@ static int step_in_sg(struct kenbak_data * const d)
 static int step_in_sh(struct kenbak_data * const d)
 {
     assert(d->state == kenbak_state_sh);
-    assert(d->sig_r == mem_read(d, KENBAK_DATA_ADDR_P)); // See SB & SC.
-    assert(d->reg_i == mem_read(d, d->sig_r)); // See SD.
+    assert(
+        d->reg_w = mem_read(d, d->sig_r) // See SG.
+            || d->reg_w == mem_read(d, KENBAK_DATA_ADDR_P)); // See SB & SC.
     assert(KENBAK_INSTR_IS_TWO_BYTE(d->reg_i)); // See SD.
 
     d->sig_r = KENBAK_DATA_ADDR_X;
@@ -464,7 +480,6 @@ static int step_in_sh(struct kenbak_data * const d)
 static int step_in_sj(struct kenbak_data * const d)
 {
     assert(d->state == kenbak_state_sj);
-    assert(d->reg_i == mem_read(d, d->sig_r)); // See SD.
     assert(KENBAK_INSTR_IS_TWO_BYTE(d->reg_i)); // See SD.
     assert(d->sig_r == KENBAK_DATA_ADDR_X); // see SH.
 
@@ -807,7 +822,7 @@ static int step_in_sq(struct kenbak_data * const d)
     //
     assert(kenbak_instr_get_type(d->reg_i) == kenbak_instr_type_jump);
 
-    assert(d->sig_inc == 1); // See SZ.
+    assert(d->sig_inc == 0); // See SZ.
 
     // Load the return address into the I register:
     //
