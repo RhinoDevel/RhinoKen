@@ -11,14 +11,14 @@
 
 // See PRM, page 24:
 //
-#define KENBAK_INSTR_IS_0314_NOOP(instr_byte) \
+#define KENBAK_INSTR_IS_031X_NOOP(instr_byte) \
     ((0370 & (instr_byte)) == 0310 && 2 < (7 & (instr_byte)))
 
 // See PRM, page 24:
 //
 #define KENBAK_INSTR_IS_TWO_BYTE(instr_byte) ( \
     1 < (7 & (instr_byte)) \
-        && (!KENBAK_INSTR_IS_0314_NOOP(instr_byte))) // Interpr. as 1-byte!
+        && (!KENBAK_INSTR_IS_031X_NOOP(instr_byte))) // Interpr. as 1-byte!
 
 // Get the addressing mode for add/sub/load/store OR or/and/lneg instructions
 // (for other instructions, this will FAIL):
