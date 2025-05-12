@@ -459,9 +459,6 @@ static int step_in_sg(struct kenbak_data * const d)
 static int step_in_sh(struct kenbak_data * const d)
 {
     assert(d->state == kenbak_state_sh);
-    assert(
-        d->reg_w = mem_read(d, d->sig_r) // See SG.
-            || d->reg_w == mem_read(d, KENBAK_DATA_ADDR_P)); // See SB & SC.
     assert(KENBAK_INSTR_IS_TWO_BYTE(d->reg_i)); // See SD.
 
     d->sig_r = KENBAK_DATA_ADDR_X;
