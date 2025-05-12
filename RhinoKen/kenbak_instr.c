@@ -56,6 +56,11 @@ enum kenbak_addr_mode kenbak_instr_get_addr_mode(uint8_t const first_byte)
  */
 enum kenbak_instr_type kenbak_instr_get_type(uint8_t const first_byte)
 {
+    if(KENBAK_INSTR_IS_0314_NOOP(first_byte))
+    {
+        return kenbak_instr_type_misc;
+    }
+
     uint8_t const least_sign_oct = 7 & first_byte;
 
     switch(least_sign_oct)

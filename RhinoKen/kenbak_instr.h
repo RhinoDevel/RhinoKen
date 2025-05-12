@@ -11,7 +11,13 @@
 
 // See PRM, page 24:
 //
-#define KENBAK_INSTR_IS_TWO_BYTE(instr_byte) (1 < (7 & (instr_byte)))
+#define KENBAK_INSTR_IS_0314_NOOP(instr_byte) ((0370 & (instr_byte)) == 0310)
+
+// See PRM, page 24:
+//
+#define KENBAK_INSTR_IS_TWO_BYTE(instr_byte) ( \
+        1 < (7 & (instr_byte)) \
+            && (!KENBAK_INSTR_IS_0314_NOOP(instr_byte))) // Interpr. as 1-byte!
 
 // Get the addressing mode for add/sub/load/store OR or/and/lneg instructions
 // (for other instructions, this will FAIL):
@@ -29,7 +35,7 @@
 
 // Get the address to search for, if a single byte instruction is currently
 // being processed (for other instructions, this will FAIL; see PRM, page 12 and
-// 13):
+// 13; for 031* NOOP, this will return "B"):
 //
 #define KENBAK_INSTR_ONE_BYTE_SEARCH_A_OR_B(first_byte) \
     (((first_byte) >> 5) & 1)
