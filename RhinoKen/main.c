@@ -22,7 +22,7 @@
 
 #include <windows.h>
 
-static uint32_t get_ms()
+static uint32_t get_ms(void)
 {
 	static LARGE_INTEGER freq;
 	static LARGE_INTEGER start;
@@ -75,7 +75,62 @@ static void print_at(int const x, int const y, char const c)
 	printf("%c", c);
 }
 
-static void print_kenbak()
+static void fill_str_with_octal(
+	char * const buf, size_t const buf_len, uint8_t const val)
+{
+	snprintf(buf, buf_len, "%03o", (int)val);
+}
+
+static void fill_str_with_binary(
+	char * const buf, size_t const buf_len, uint8_t const val)
+{
+	int i = -1, max_i = 8, shifted_val = val;
+
+	if(buf == NULL)
+	{
+		assert(false);
+		return;
+	}
+	if(buf_len < 1)
+	{
+		assert(false);
+		return;
+	}
+	
+	if(buf_len - 1 < max_i)
+	{
+		assert(false);
+		max_i = buf_len - 1;
+	}
+
+	for(i = max_i - 1; 0 <= i; --i)
+	{
+		buf[i] = '0' + (shifted_val & 1);
+
+		shifted_val >>= 1;
+	}
+	assert(i == -1);
+	buf[max_i] = '\0';
+}
+
+/**
+ * - Acts as if given string always fits in one line from given X position on!
+ * - Does NOT clear the line before write!
+ */
+static int print_str_at(int const x, int const y, char const * const str)
+{
+	assert(str != NULL);
+	
+	int i = -1;
+
+	while(str[++i] != '\0')
+	{
+		print_at(x + i, y, str[i]);
+	}
+	return i;
+}
+
+static void print_kenbak(void)
 {
 	printf( "  /-----------------------------------------------------------------------------\\" "\n");
 	printf( " /   7 6  5 4  3  2 1 0                                                          \\" "\n");
@@ -86,7 +141,7 @@ static void print_kenbak()
     printf(" \\   b b  b b  w  w w w     b        w     b     w     b       w    b    |       /" "\n");
 	printf("  \\-----------------------------------------------------------------------------/" "\n");
 }
-static void print_keys()
+static void print_keys(void)
 {
 	printf("     ^ ^  ^ ^  ^  ^ ^ ^     ^        ^     ^     ^     ^       ^    ^" "\n");
 	printf("     | |  | |  |  | | |     |        |     |     |     |       |    |" "\n");
@@ -186,7 +241,7 @@ static void update_input(struct kenbak_input * const input)
 	}
 }
 
-int main()
+int main(void)
 {
 	struct kenbak_data * const d = kenbak_emu_create(true);
 	uint32_t last = 0;
@@ -204,24 +259,24 @@ int main()
 	{
 		int i = KENBAK_DATA_ADDR_P;
 
-		//// Own: Rotate a bit, with inner delay loop (countdown)
-		//// 
-		//// *=3
-		////
-		//d->delay_line_0[i++] = 0004; //  3 004 P = 4
-		//d->delay_line_0[i++] = 0023; //  4 023 LOAD-A constant
-		//d->delay_line_0[i++] = 0200; //  5 - constant -
-		//d->delay_line_0[i++] = 0311; //  6 311 ROTATE_LEFT_1-A
-		//d->delay_line_0[i++] = 0034; //  7 034 STORE-A memory
-		//d->delay_line_0[i++] = 0200; //  8 - address -
-		//d->delay_line_0[i++] = 0223; //  9 223 LOAD-X constant
-		//d->delay_line_0[i++] = 0040; // 10 - constant -
-		//d->delay_line_0[i++] = 0213; // 11 213 SUB-X constant
-		//d->delay_line_0[i++] = 0001; // 12 - constant -
-		//d->delay_line_0[i++] = 0243; // 13 243 JPD-X != 0
-		//d->delay_line_0[i++] = 0013; // 14 - address -
-		//d->delay_line_0[i++] = 0343; // 15 343 JPD-Unc. "!= 0"
-		//d->delay_line_0[i++] = 0006; // 16 - address -
+		// Own: Rotate a bit, with inner delay loop (countdown)
+		// 
+		// *=3
+		//
+		d->delay_line_0[i++] = 0004; //  3 004 P = 4
+		d->delay_line_0[i++] = 0023; //  4 023 LOAD-A constant
+		d->delay_line_0[i++] = 0200; //  5 - constant -
+		d->delay_line_0[i++] = 0311; //  6 311 ROTATE_LEFT_1-A
+		d->delay_line_0[i++] = 0034; //  7 034 STORE-A memory
+		d->delay_line_0[i++] = 0200; //  8 - address -
+		d->delay_line_0[i++] = 0223; //  9 223 LOAD-X constant
+		d->delay_line_0[i++] = 0040; // 10 - constant -
+		d->delay_line_0[i++] = 0213; // 11 213 SUB-X constant
+		d->delay_line_0[i++] = 0001; // 12 - constant -
+		d->delay_line_0[i++] = 0243; // 13 243 JPD-X != 0
+		d->delay_line_0[i++] = 0013; // 14 - address -
+		d->delay_line_0[i++] = 0343; // 15 343 JPD-Unc. "!= 0"
+		d->delay_line_0[i++] = 0006; // 16 - address -
 
 		// EX 3-1
 		//
@@ -283,6 +338,32 @@ int main()
 		// Update output:
 		//
 		print_leds(&d->output);
+
+		//{
+		//	char buf[80 + 1];
+		//	int i = 0;
+		//
+		//	//int const buf_len = sizeof buf / sizeof *buf;
+		//
+		//	//i += print_str_at(i, 12, kenbak_state_get_str(d->state));
+		//
+		//	buf[i++] = 'P';
+		//	buf[i++] = ':';
+		//	buf[i++] = ' ';
+		//
+		//	fill_str_with_octal(
+		//		buf + i, 3 + 1, d->delay_line_0[KENBAK_DATA_ADDR_P]);
+		//	i += 3;
+		//
+		//	buf[i++] = ' ';
+		//
+		//	fill_str_with_binary(
+		//		buf + i, 8 + 1, d->delay_line_0[KENBAK_DATA_ADDR_P]);
+		//	i += 8;
+		//
+		//	i = 0;
+		//	print_str_at(i, 12, buf);
+		//}
 	} while(true);
 
 	set_cursor_visibility(true);
