@@ -130,6 +130,29 @@ static int print_str_at(int const x, int const y, char const * const str)
 	return i;
 }
 
+static int print_byte_at(
+	int const x, int const y, char const title, uint8_t const val)
+{
+	char buf[15 + 1];
+	int i = 0;
+
+	//int const buf_len = sizeof buf / sizeof *buf;
+
+	buf[i++] = title;
+	buf[i++] = ':';
+	buf[i++] = ' ';
+
+	fill_str_with_octal(buf + i, 3 + 1, val);
+	i += 3;
+
+	buf[i++] = ' ';
+
+	fill_str_with_binary(buf + i, 8 + 1, val);
+	i += 8;
+
+	return print_str_at(x, y, buf);
+}
+
 static void print_kenbak(void)
 {
 	printf( "  /-----------------------------------------------------------------------------\\" "\n");
@@ -339,31 +362,12 @@ int main(void)
 		//
 		print_leds(&d->output);
 
-		//{
-		//	char buf[80 + 1];
-		//	int i = 0;
-		//
-		//	//int const buf_len = sizeof buf / sizeof *buf;
-		//
-		//	//i += print_str_at(i, 12, kenbak_state_get_str(d->state));
-		//
-		//	buf[i++] = 'P';
-		//	buf[i++] = ':';
-		//	buf[i++] = ' ';
-		//
-		//	fill_str_with_octal(
-		//		buf + i, 3 + 1, d->delay_line_0[KENBAK_DATA_ADDR_P]);
-		//	i += 3;
-		//
-		//	buf[i++] = ' ';
-		//
-		//	fill_str_with_binary(
-		//		buf + i, 8 + 1, d->delay_line_0[KENBAK_DATA_ADDR_P]);
-		//	i += 8;
-		//
-		//	i = 0;
-		//	print_str_at(i, 12, buf);
-		//}
+		print_byte_at(0, 12, 'A', d->delay_line_0[KENBAK_DATA_ADDR_A]);
+		print_byte_at(0, 13, 'B', d->delay_line_0[KENBAK_DATA_ADDR_B]);
+		print_byte_at(0, 14, 'X', d->delay_line_0[KENBAK_DATA_ADDR_X]);
+		print_byte_at(0, 15, 'P', d->delay_line_0[KENBAK_DATA_ADDR_P]);
+
+		//i += print_str_at(i, 12, kenbak_state_get_str(d->state));
 	} while(true);
 
 	set_cursor_visibility(true);
