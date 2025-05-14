@@ -148,3 +148,52 @@ enum kenbak_instr_type kenbak_instr_get_type(uint8_t const first_byte)
         }
     }
 }
+
+bool kenbak_instr_fill_str(
+    char * const buf, size_t const buf_len, uint8_t const first_byte)
+{
+    if(buf == NULL)
+    {
+        assert(false);
+        return false;
+    }
+    //if(buf_len < ) // TODO: Implement!
+    //{
+    //    assert(false);
+    //    return false;
+    //}
+
+    enum kenbak_instr_type const instr_type = kenbak_instr_get_type(first_byte);
+
+    // TODO: Improve the following:
+    //
+    switch(instr_type)
+    {
+        case kenbak_instr_type_add: snprintf(buf, buf_len,          "ADD       "); break;
+        case kenbak_instr_type_sub: snprintf(buf, buf_len,          "SUB       "); break;
+        case kenbak_instr_type_load: snprintf(buf, buf_len,         "LOAD      "); break;
+        case kenbak_instr_type_store: snprintf(buf, buf_len,        "STORE     "); break;
+
+        case  kenbak_instr_type_or: snprintf(buf, buf_len,          "OR        "); break;
+        case kenbak_instr_type_and: snprintf(buf, buf_len,          "AND       "); break;
+        case kenbak_instr_type_lneg: snprintf(buf, buf_len,         "LNEG      "); break;
+
+        case kenbak_instr_type_jump: snprintf(buf, buf_len,         "JUMP      "); break;
+
+        case kenbak_instr_type_bit: snprintf(buf, buf_len,          "BIT       "); break;
+
+        case kenbak_instr_type_shift_rot: snprintf(buf, buf_len,    "SHIFT/ROT."); break;
+
+        case kenbak_instr_type_misc: snprintf(buf, buf_len,         "NOOP/HALT "); break;
+
+        case kenbak_instr_type_invalid: // (falls through)
+        default:
+        {
+            assert(false);
+            return false;
+        }
+    }
+
+    // TODO: Implement!
+    return true;
+}
