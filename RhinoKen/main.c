@@ -21,6 +21,7 @@
 // *****************************************************************************
 
 #include <windows.h>
+#include <conio.h>
 
 static uint32_t get_ms(void)
 {
@@ -65,6 +66,27 @@ static void set_cursor_visibility(bool const is_visible)
 	GetConsoleCursorInfo(h_console, &cursor_info); // Return value ignored..
 	cursor_info.bVisible = (BOOL)is_visible;
 	SetConsoleCursorInfo(h_console, &cursor_info); // Return value ignored..
+}
+
+static char wait_for_key_presses(char const a, char const b, char const c)
+{
+	while(true)
+	{
+		int const ch = _getch();
+
+		if(ch == (int)a)
+		{
+			return a;
+		}
+		if(ch == (int)b)
+		{
+			return b;
+		}
+		if(ch == (int)c)
+		{
+			return c;
+		}
+	}
 }
 
 // *****************************************************************************
@@ -169,6 +191,11 @@ static void print_keys(void)
 	printf("     ^ ^  ^ ^  ^  ^ ^ ^     ^        ^     ^     ^     ^       ^    ^" "\n");
 	printf("     | |  | |  |  | | |     |        |     |     |     |       |    |" "\n");
 	printf("     1 2  3 4  5  6 7 8     D        F     G     H     J       K    L" "\n");
+
+	printf("\n");
+	printf("A = Enable step mode." "\n");
+	printf("Y = Disable step mode." "\n");
+	printf("X = Next step (if step mode is enabled)." "\n");
 }
 static void print_leds(struct kenbak_output const * const o)
 {
@@ -268,6 +295,7 @@ int main(void)
 {
 	struct kenbak_data * const d = kenbak_emu_create(true);
 	uint32_t last = 0;
+	bool stepMode = false;
 
 	set_cursor_visibility(false);
 
@@ -328,7 +356,7 @@ int main(void)
 	{
 		uint32_t const cur = get_ms(), cur_interval = cur - last;
 
-		if(cur_interval < MT_UPDATE_INTERVAL_MS)
+		if(!stepMode && cur_interval < MT_UPDATE_INTERVAL_MS)
 		{
 			continue; // Wait a little longer.
 		}
@@ -339,22 +367,53 @@ int main(void)
 		//
 		if(is_key_down('Q'))
 		{
-			break; // => Exit emulation.
+			break; // => Exit emulation (1/2).
 		}
 		kenbak_emu_init_input(d, true);
 		update_input(&d->input);
 
-		// Let the emulator do the work that a real Kenbak-1 computer can do in
-		// the current update interval timespan:
-		//
-		uint32_t const frames_per_cur_interval =
-			cur_interval / MT_UPDATE_INTERVAL_MS;
-		//
-		for(uint32_t f = 0; f < frames_per_cur_interval; ++f)
+		if(stepMode)
 		{
-			for(int s = 0; s < MT_STEPS_PER_FRAME; ++s)
+			kenbak_emu_step(d); // (returned byte time is unused..)
+			
+			char const pressed_key = wait_for_key_presses(
+				'y', // Exit step mode.
+				'x', // Next step. 
+				'q'); // Exit emulation (2/2).
+
+			if(pressed_key == 'y') // Hard-coded
 			{
-				kenbak_emu_step(d); // (returned byte time is unused..)
+				stepMode = false;
+			}
+			else
+			{
+				if(pressed_key == 'q') // Hard-coded
+				{
+					break; // => Exit emulation.
+				}
+
+				assert(pressed_key == 'x'); // Hard-coded
+			}
+		}
+		else
+		{
+			if(is_key_down('A'))
+			{
+				stepMode = true;
+			}
+
+			// Let the emulator do the work that a real Kenbak-1 computer can do
+			// in the current update interval timespan:
+			//
+			uint32_t const frames_per_cur_interval =
+				cur_interval / MT_UPDATE_INTERVAL_MS;
+			//
+			for(uint32_t f = 0; f < frames_per_cur_interval; ++f)
+			{
+				for(int s = 0; s < MT_STEPS_PER_FRAME; ++s)
+				{
+					kenbak_emu_step(d); // (returned byte time is unused..)
+				}
 			}
 		}
 
@@ -362,15 +421,19 @@ int main(void)
 		//
 		print_leds(&d->output);
 
-		print_str_at(0, 12, kenbak_state_get_str(d->state));
+		print_str_at(0, 16, kenbak_state_get_str(d->state));
 
-		print_byte_at(0, 14, 'A', d->delay_line_0[KENBAK_DATA_ADDR_A]);
-		print_byte_at(0, 15, 'B', d->delay_line_0[KENBAK_DATA_ADDR_B]);
-		print_byte_at(0, 16, 'X', d->delay_line_0[KENBAK_DATA_ADDR_X]);
-		print_byte_at(0, 17, 'P', d->delay_line_0[KENBAK_DATA_ADDR_P]);
+		// Overdone (printing everything each time):
+		//
+		print_str_at(3, 16, stepMode ? "[x] Step mode" : "[ ] Step mode");
 
-		print_byte_at(0, 19, 'W', d->reg_w);
-		print_byte_at(0, 20, 'I', d->reg_i);
+		print_byte_at(0, 18, 'A', d->delay_line_0[KENBAK_DATA_ADDR_A]);
+		print_byte_at(0, 19, 'B', d->delay_line_0[KENBAK_DATA_ADDR_B]);
+		print_byte_at(0, 20, 'X', d->delay_line_0[KENBAK_DATA_ADDR_X]);
+		print_byte_at(0, 21, 'P', d->delay_line_0[KENBAK_DATA_ADDR_P]);
+
+		print_byte_at(0, 23, 'W', d->reg_w);
+		print_byte_at(0, 24, 'I', d->reg_i);
 	} while(true);
 
 	set_cursor_visibility(true);
