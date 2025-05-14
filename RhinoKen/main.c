@@ -362,12 +362,11 @@ int main(void)
 		//
 		print_leds(&d->output);
 
-		print_byte_at(0, 12, 'A', d->delay_line_0[KENBAK_DATA_ADDR_A]);
-		print_byte_at(0, 13, 'B', d->delay_line_0[KENBAK_DATA_ADDR_B]);
-		print_byte_at(0, 14, 'X', d->delay_line_0[KENBAK_DATA_ADDR_X]);
-		print_byte_at(0, 15, 'P', d->delay_line_0[KENBAK_DATA_ADDR_P]);
-
-		//i += print_str_at(i, 12, kenbak_state_get_str(d->state));
+		print_str_at(0, 12, kenbak_state_get_str(d->state));
+		print_byte_at(0, 14, 'A', d->delay_line_0[KENBAK_DATA_ADDR_A]);
+		print_byte_at(0, 15, 'B', d->delay_line_0[KENBAK_DATA_ADDR_B]);
+		print_byte_at(0, 16, 'X', d->delay_line_0[KENBAK_DATA_ADDR_X]);
+		print_byte_at(0, 17, 'P', d->delay_line_0[KENBAK_DATA_ADDR_P]);
 	} while(true);
 
 	set_cursor_visibility(true);
