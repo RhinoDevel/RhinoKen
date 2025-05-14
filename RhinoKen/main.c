@@ -122,7 +122,7 @@ static void fill_str_with_binary(
 	if(buf_len - 1 < max_i)
 	{
 		assert(false);
-		max_i = buf_len - 1;
+		max_i = (int)buf_len - 1;
 	}
 
 	for(i = max_i - 1; 0 <= i; --i)
@@ -434,6 +434,19 @@ int main(void)
 
 		print_byte_at(0, 23, 'W', d->reg_w);
 		print_byte_at(0, 24, 'I', d->reg_i);
+
+		// TODO: Implement correctly:
+		//
+		{
+			char buf[81];
+
+			kenbak_instr_fill_str(buf, 81, d->reg_i);
+
+			print_str_at(
+				16, // Hard-coded
+				24,
+				buf);
+		}
 	} while(true);
 
 	set_cursor_visibility(true);
