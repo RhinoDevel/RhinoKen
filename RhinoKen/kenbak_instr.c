@@ -178,7 +178,24 @@ bool kenbak_instr_fill_str(
         case kenbak_instr_type_and: snprintf(buf, buf_len,          "AND       "); break;
         case kenbak_instr_type_lneg: snprintf(buf, buf_len,         "LNEG      "); break;
 
-        case kenbak_instr_type_jump: snprintf(buf, buf_len,         "JUMP      "); break;
+        case kenbak_instr_type_jump:
+        {
+            switch(7 & (first_byte >> 3))
+            {
+                case 4: snprintf(buf, buf_len,                      "JPD       "); break;
+                case 5: snprintf(buf, buf_len,                      "JPI       "); break;
+                case 6: snprintf(buf, buf_len,                      "JMD       "); break;
+                case 7: snprintf(buf, buf_len,                      "JMI       "); break;
+
+                default:
+                {
+                    assert(false);
+                    return false;
+                }
+
+            }
+            break;
+        }
 
         case kenbak_instr_type_bit: snprintf(buf, buf_len,          "BIT       "); break;
 
