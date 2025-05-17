@@ -132,6 +132,7 @@
     <ClCompile Include="kenbak_instr.c" />
     <ClCompile Include="kenbak_state.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="mt_str.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kenbak_addr_mode.h" />
@@ -143,6 +144,7 @@
     <ClInclude Include="kenbak_data.h" />
     <ClInclude Include="kenbak_state.h" />
     <ClInclude Include="kenbak_x.h" />
+    <ClInclude Include="mt_str.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
