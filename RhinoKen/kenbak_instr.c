@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <assert.h>
 
 #include "kenbak_instr.h"
@@ -180,6 +181,8 @@ bool kenbak_instr_fill_str(
 
         case kenbak_instr_type_jump:
         {
+            bool is_unc = false;
+
             switch(7 & (first_byte >> 3))
             {
                 case 4: snprintf(buf, buf_len,                      "JPD       "); break;
@@ -192,8 +195,39 @@ bool kenbak_instr_fill_str(
                     assert(false);
                     return false;
                 }
-
             }
+
+            switch(3 & (first_byte >> 6)) // TODO: buf_len - 4 is theoretically dangerous!
+            {
+                case 0: snprintf(buf + 4, buf_len - 4,                  "A     "); break;
+                case 1: snprintf(buf + 4, buf_len - 4,                  "B     "); break;
+                case 2: snprintf(buf + 4, buf_len - 4,                  "X     "); break;
+                case 3: snprintf(buf + 4, buf_len - 4,                  "Unc.  "); is_unc = true; break;
+                default:
+                {
+                    assert(false);
+                    return false;
+                }
+            }
+
+            if(!is_unc)
+            {
+                switch(7 & first_byte) // TODO: buf_len - 4 - 2 is theoretically dangerous!
+                {
+                    case 3: snprintf(buf + 4 + 2, buf_len - 4 - 2,        "!= 0"); break;
+                    case 4: snprintf(buf + 4 + 2, buf_len - 4 - 2,        "== 0"); break;
+                    case 5: snprintf(buf + 4 + 2, buf_len - 4 - 2,        "< 0 "); break;
+                    case 6: snprintf(buf + 4 + 2, buf_len - 4 - 2,        ">= 0"); break;
+                    case 7: snprintf(buf + 4 + 2, buf_len - 4 - 2,        "> 0 "); break;
+
+                    default:
+                    {
+                        assert(false);
+                        return false;
+                    }
+                }
+            }
+
             break;
         }
 
