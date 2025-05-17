@@ -3,7 +3,11 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <stdint.h>
 
+#include "mt_str.h"
+
+#include "kenbak_instr.h"
 #include "kenbak_emu.h"
 #include "kenbak_data.h"
 
@@ -97,44 +101,6 @@ static void print_at(int const x, int const y, char const c)
 	printf("%c", c);
 }
 
-static void fill_str_with_octal(
-	char * const buf, size_t const buf_len, uint8_t const val)
-{
-	snprintf(buf, buf_len, "%03o", (int)val);
-}
-
-static void fill_str_with_binary(
-	char * const buf, size_t const buf_len, uint8_t const val)
-{
-	int i = -1, max_i = 8, shifted_val = val;
-
-	if(buf == NULL)
-	{
-		assert(false);
-		return;
-	}
-	if(buf_len < 1)
-	{
-		assert(false);
-		return;
-	}
-	
-	if(buf_len - 1 < max_i)
-	{
-		assert(false);
-		max_i = (int)buf_len - 1;
-	}
-
-	for(i = max_i - 1; 0 <= i; --i)
-	{
-		buf[i] = '0' + (shifted_val & 1);
-
-		shifted_val >>= 1;
-	}
-	assert(i == -1);
-	buf[max_i] = '\0';
-}
-
 /**
  * - Acts as if given string always fits in one line from given X position on!
  * - Does NOT clear the line before write!
@@ -164,12 +130,12 @@ static int print_byte_at(
 	buf[i++] = ':';
 	buf[i++] = ' ';
 
-	fill_str_with_octal(buf + i, 3 + 1, val);
+	mt_str_fill_with_octal(buf + i, 3 + 1, val);
 	i += 3;
 
 	buf[i++] = ' ';
 
-	fill_str_with_binary(buf + i, 8 + 1, val);
+	mt_str_fill_with_binary(buf + i, 8 + 1, val);
 	i += 8;
 
 	return print_str_at(x, y, buf);
