@@ -405,8 +405,21 @@ int main(void)
 		//
 		{
 			char buf[81];
+			uint8_t const second_byte_addr =
+				(d->delay_line_0[KENBAK_DATA_ADDR_P] + 1) % 256;
+			uint8_t second_byte;
 
-			kenbak_instr_fill_str(buf, 81, d->reg_i);
+			if(second_byte_addr < KENBAK_DATA_DELAY_LINE_SIZE)
+			{
+				second_byte = d->delay_line_0[second_byte_addr];
+			}
+			else
+			{
+				second_byte = d->delay_line_1[
+					second_byte_addr - KENBAK_DATA_DELAY_LINE_SIZE];
+			}
+
+			kenbak_instr_fill_str(buf, 81, d->reg_i, second_byte);
 
 			print_str_at(
 				16, // Hard-coded

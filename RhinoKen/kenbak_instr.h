@@ -85,6 +85,9 @@ enum kenbak_addr_mode kenbak_instr_get_addr_mode(uint8_t const first_byte);
 enum kenbak_instr_type kenbak_instr_get_type(uint8_t const first_byte);
 
 bool kenbak_instr_fill_str(
-    char * const buf, size_t const buf_len, uint8_t const first_byte);
+    char * const buf,
+    size_t const buf_len,
+    uint8_t const first_byte,
+    uint8_t const second_byte);
 
 #endif //KENBAK_INSTR

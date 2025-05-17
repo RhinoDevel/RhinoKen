@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "mt_str.h"
+
 #include "kenbak_instr.h"
 #include "kenbak_addr_mode.h"
 
@@ -151,7 +153,10 @@ enum kenbak_instr_type kenbak_instr_get_type(uint8_t const first_byte)
 }
 
 bool kenbak_instr_fill_str(
-    char * const buf, size_t const buf_len, uint8_t const first_byte)
+    char * const buf,
+    size_t const buf_len,
+    uint8_t const first_byte,
+    uint8_t const second_byte)
 {
     if(buf == NULL)
     {
@@ -165,30 +170,38 @@ bool kenbak_instr_fill_str(
     //}
 
     enum kenbak_instr_type const instr_type = kenbak_instr_get_type(first_byte);
+    char second_byte_oct[3 + 1];
+
+    mt_str_fill_with_octal(
+        second_byte_oct,
+        sizeof second_byte_oct / sizeof *second_byte_oct,
+        second_byte);
+
 
     // TODO: Improve the following:
     //
     switch(instr_type)
     {
-        case kenbak_instr_type_add: snprintf(buf, buf_len,          "ADD       "); break;
-        case kenbak_instr_type_sub: snprintf(buf, buf_len,          "SUB       "); break;
-        case kenbak_instr_type_load: snprintf(buf, buf_len,         "LOAD      "); break;
-        case kenbak_instr_type_store: snprintf(buf, buf_len,        "STORE     "); break;
-
-        case  kenbak_instr_type_or: snprintf(buf, buf_len,          "OR        "); break;
-        case kenbak_instr_type_and: snprintf(buf, buf_len,          "AND       "); break;
-        case kenbak_instr_type_lneg: snprintf(buf, buf_len,         "LNEG      "); break;
+        case kenbak_instr_type_add: snprintf(buf, buf_len,          "ADD             "); break;
+        case kenbak_instr_type_sub: snprintf(buf, buf_len,          "SUB             "); break;
+        case kenbak_instr_type_load: snprintf(buf, buf_len,         "LOAD            "); break;
+        case kenbak_instr_type_store: snprintf(buf, buf_len,        "STORE           "); break;
+        
+        case kenbak_instr_type_or: snprintf(buf, buf_len,           "OR              "); break;
+        case kenbak_instr_type_and: snprintf(buf, buf_len,          "AND             "); break;
+        case kenbak_instr_type_lneg: snprintf(buf, buf_len,         "LNEG            "); break;
 
         case kenbak_instr_type_jump:
         {
-            bool is_unc = false;
+            bool is_unc = false,
+                is_ind = false;
 
             switch(7 & (first_byte >> 3))
             {
-                case 4: snprintf(buf, buf_len,                      "JPD       "); break;
-                case 5: snprintf(buf, buf_len,                      "JPI       "); break;
-                case 6: snprintf(buf, buf_len,                      "JMD       "); break;
-                case 7: snprintf(buf, buf_len,                      "JMI       "); break;
+                case 4: snprintf(buf, buf_len,                      "JPD             "); break;
+                case 5: snprintf(buf, buf_len,                      "JPI             "); is_ind = true; break;
+                case 6: snprintf(buf, buf_len,                      "JMD             "); break;
+                case 7: snprintf(buf, buf_len,                      "JMI             "); is_ind = true; break;
 
                 default:
                 {
@@ -199,10 +212,10 @@ bool kenbak_instr_fill_str(
 
             switch(3 & (first_byte >> 6)) // TODO: buf_len - 4 is theoretically dangerous!
             {
-                case 0: snprintf(buf + 4, buf_len - 4,                  "A     "); break;
-                case 1: snprintf(buf + 4, buf_len - 4,                  "B     "); break;
-                case 2: snprintf(buf + 4, buf_len - 4,                  "X     "); break;
-                case 3: snprintf(buf + 4, buf_len - 4,                  "Unc.  "); is_unc = true; break;
+                case 0: snprintf(buf + 4, buf_len - 4,                  "A           "); break;
+                case 1: snprintf(buf + 4, buf_len - 4,                  "B           "); break;
+                case 2: snprintf(buf + 4, buf_len - 4,                  "X           "); break;
+                case 3: snprintf(buf + 4, buf_len - 4,                  "Unc.        "); is_unc = true; break;
                 default:
                 {
                     assert(false);
@@ -214,11 +227,11 @@ bool kenbak_instr_fill_str(
             {
                 switch(7 & first_byte) // TODO: buf_len - 4 - 2 is theoretically dangerous!
                 {
-                    case 3: snprintf(buf + 4 + 2, buf_len - 4 - 2,        "!= 0"); break;
-                    case 4: snprintf(buf + 4 + 2, buf_len - 4 - 2,        "== 0"); break;
-                    case 5: snprintf(buf + 4 + 2, buf_len - 4 - 2,        "< 0 "); break;
-                    case 6: snprintf(buf + 4 + 2, buf_len - 4 - 2,        ">= 0"); break;
-                    case 7: snprintf(buf + 4 + 2, buf_len - 4 - 2,        "> 0 "); break;
+                    case 3: snprintf(buf + 4 + 2, buf_len - 4 - 2,        "!= 0      "); break;
+                    case 4: snprintf(buf + 4 + 2, buf_len - 4 - 2,        "== 0      "); break;
+                    case 5: snprintf(buf + 4 + 2, buf_len - 4 - 2,        "< 0       "); break;
+                    case 6: snprintf(buf + 4 + 2, buf_len - 4 - 2,        ">= 0      "); break;
+                    case 7: snprintf(buf + 4 + 2, buf_len - 4 - 2,        "> 0       "); break;
 
                     default:
                     {
@@ -228,14 +241,23 @@ bool kenbak_instr_fill_str(
                 }
             }
 
+            if(is_ind) // TODO: buf_len - 4 - 2 - 5 is theoretically dangerous!
+            {
+                snprintf(buf + 4 + 2 + 5, buf_len - 4 - 2 - 5,                 "(%s)  ", second_byte_oct);
+            }
+            else
+            {
+                snprintf(buf + 4 + 2 + 5, buf_len - 4 - 2 - 5,                 "%s    ", second_byte_oct);
+            }
+
             break;
         }
 
-        case kenbak_instr_type_bit: snprintf(buf, buf_len,          "BIT       "); break;
+        case kenbak_instr_type_bit: snprintf(buf, buf_len,          "BIT              "); break;
 
-        case kenbak_instr_type_shift_rot: snprintf(buf, buf_len,    "SHIFT/ROT."); break;
+        case kenbak_instr_type_shift_rot: snprintf(buf, buf_len,    "SHIFT/ROT.       "); break;
 
-        case kenbak_instr_type_misc: snprintf(buf, buf_len,         "NOOP/HALT "); break;
+        case kenbak_instr_type_misc: snprintf(buf, buf_len,         "NOOP/HALT        "); break;
 
         case kenbak_instr_type_invalid: // (falls through)
         default:
