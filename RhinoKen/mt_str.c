@@ -11,6 +11,16 @@
 void mt_str_fill_with_octal(
 	char * const buf, size_t const buf_len, uint8_t const val)
 {
+	if(buf == NULL)
+	{
+		assert(false);
+		return;
+	}
+	if(buf_len < 3 + 1)
+	{
+		assert(false);
+		return;
+	}
 	snprintf(buf, buf_len, "%03o", (int)val);
 }
 
