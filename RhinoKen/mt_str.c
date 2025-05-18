@@ -27,31 +27,26 @@ void mt_str_fill_with_octal(
 void mt_str_fill_with_binary(
 	char * const buf, size_t const buf_len, uint8_t const val)
 {
-	int i = -1, max_i = 8, shifted_val = val;
+	int shifted_val = 0;
 
 	if(buf == NULL)
 	{
 		assert(false);
 		return;
 	}
-	if(buf_len < 1)
+	if(buf_len < 8 + 1)
 	{
 		assert(false);
 		return;
 	}
 
-	if(buf_len - 1 < max_i)
-	{
-		assert(false);
-		max_i = (int)buf_len - 1;
-	}
-
-	for(i = max_i - 1; 0 <= i; --i)
+	shifted_val = val;
+	for(int i = 7; 0 <= i; --i)
 	{
 		buf[i] = '0' + (shifted_val & 1);
 
 		shifted_val >>= 1;
 	}
-	assert(i == -1);
-	buf[max_i] = '\0';
+
+	buf[8] = '\0';
 }
