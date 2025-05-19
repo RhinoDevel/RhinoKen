@@ -404,35 +404,13 @@ int main(void)
 			char buf[81];
 			int const buf_len = sizeof buf / sizeof *buf;
 			uint8_t const first_byte_addr = d->delay_line_0[KENBAK_DATA_ADDR_P],
-				second_byte_addr = (first_byte_addr + 1) % 256; // TODO: Test!
-			uint8_t first_byte,
-				second_byte;
-
-			if(first_byte_addr < KENBAK_DATA_DELAY_LINE_SIZE) // Hard-coded
-			{
-				first_byte = d->delay_line_0[first_byte_addr];
-			}
-			else
-			{
-				first_byte = d->delay_line_1[
-					first_byte_addr - KENBAK_DATA_DELAY_LINE_SIZE];
-			}
-
-			if(second_byte_addr < KENBAK_DATA_DELAY_LINE_SIZE) // Hard-coded
-			{
-				second_byte = d->delay_line_0[second_byte_addr];
-			}
-			else
-			{
-				second_byte = d->delay_line_1[
-					second_byte_addr - KENBAK_DATA_DELAY_LINE_SIZE];
-			}
+				second_byte_addr = (first_byte_addr + 1) % 256; // TODO: Test! Even necessary?
 
 			kenbak_instr_fill_str(
 				buf,
 				buf_len,
-				first_byte,
-				second_byte);
+				*kenbak_get_mem_ptr(d, first_byte_addr),
+				*kenbak_get_mem_ptr(d, second_byte_addr));
 
 			print_str_at(
 				16, // Hard-coded
