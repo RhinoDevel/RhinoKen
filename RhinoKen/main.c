@@ -398,18 +398,27 @@ int main(void)
 		print_byte_at(0, 20, 'X', d->delay_line_0[KENBAK_DATA_ADDR_X]);
 		print_byte_at(0, 21, 'P', d->delay_line_0[KENBAK_DATA_ADDR_P]);
 
-		print_byte_at(0, 23, 'W', d->reg_w);
-		print_byte_at(0, 24, 'I', d->reg_i);
-
 		// TODO: Implement correctly:
 		//
 		{
 			char buf[81];
-			uint8_t const second_byte_addr =
-				(d->delay_line_0[KENBAK_DATA_ADDR_P] + 1) % 256;
-			uint8_t second_byte;
+			int const buf_len = sizeof buf / sizeof *buf;
+			uint8_t const first_byte_addr = d->delay_line_0[KENBAK_DATA_ADDR_P],
+				second_byte_addr = (first_byte_addr + 1) % 256; // TODO: Test!
+			uint8_t first_byte,
+				second_byte;
 
-			if(second_byte_addr < KENBAK_DATA_DELAY_LINE_SIZE)
+			if(first_byte_addr < KENBAK_DATA_DELAY_LINE_SIZE) // Hard-coded
+			{
+				first_byte = d->delay_line_0[first_byte_addr];
+			}
+			else
+			{
+				first_byte = d->delay_line_1[
+					first_byte_addr - KENBAK_DATA_DELAY_LINE_SIZE];
+			}
+
+			if(second_byte_addr < KENBAK_DATA_DELAY_LINE_SIZE) // Hard-coded
 			{
 				second_byte = d->delay_line_0[second_byte_addr];
 			}
@@ -419,13 +428,20 @@ int main(void)
 					second_byte_addr - KENBAK_DATA_DELAY_LINE_SIZE];
 			}
 
-			kenbak_instr_fill_str(buf, 81, d->reg_i, second_byte);
+			kenbak_instr_fill_str(
+				buf,
+				buf_len,
+				first_byte,
+				second_byte);
 
 			print_str_at(
 				16, // Hard-coded
-				24,
+				21,
 				buf);
 		}
+
+		print_byte_at(0, 23, 'W', d->reg_w);
+		print_byte_at(0, 24, 'I', d->reg_i);
 	} while(true);
 
 	set_cursor_visibility(true);
