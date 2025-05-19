@@ -177,7 +177,6 @@ bool kenbak_instr_fill_str(
         sizeof second_byte_oct / sizeof *second_byte_oct,
         second_byte);
 
-
     // TODO: Improve the following:
     //
     switch(instr_type)
