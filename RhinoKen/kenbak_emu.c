@@ -832,7 +832,7 @@ static int step_in_sq(struct kenbak_data * const d)
     //
     mem_write(d, KENBAK_DATA_ADDR_P, d->reg_w);
 
-    // TODO: The P register increment control msut be set to add one, is this already done somewhere?
+    // TODO: The P register increment control must be set to add one, is this already done somewhere?
 
     d->state = kenbak_state_sr;
     return 1; // Unsure, if this really takes a single byte time.
