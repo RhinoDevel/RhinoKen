@@ -404,7 +404,7 @@ int main(void)
 			char buf[81];
 			int const buf_len = sizeof buf / sizeof *buf;
 			uint8_t const first_byte_addr = d->delay_line_0[KENBAK_DATA_ADDR_P],
-				second_byte_addr = (first_byte_addr + 1) % 256; // TODO: Test! Even necessary?
+				second_byte_addr = first_byte_addr + 1;
 
 			kenbak_instr_fill_str(
 				buf,
