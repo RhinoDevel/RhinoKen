@@ -152,16 +152,71 @@ static void print_kenbak(void)
     printf(" \\   b b  b b  w  w w w     b        w     b     w     b       w    b    |       /" "\n");
 	printf("  \\-----------------------------------------------------------------------------/" "\n");
 }
-static void print_keys(void)
+static void print_keys()
 {
 	printf("     ^ ^  ^ ^  ^  ^ ^ ^     ^        ^     ^     ^     ^       ^    ^" "\n");
 	printf("     | |  | |  |  | | |     |        |     |     |     |       |    |" "\n");
 	printf("     1 2  3 4  5  6 7 8     D        F     G     H     J       K    L" "\n");
-
+	printf("\n"); // <- For the print_input() line.
 	printf("\n");
 	printf("A = Enable step mode." "\n");
 	printf("Y = Disable step mode." "\n");
 	printf("X = Next step (if step mode is enabled)." "\n");
+}
+static void print_input(struct kenbak_input const * const input)
+{
+	static char const is_pressed = '*';
+	static char const is_not_pressed = ' ';
+
+	// Hard-coded for positions of keys from (e.g.) print_keys(), expects the
+	// current cursor position to be at beginning of line.
+
+	int x = 5, y = 11;
+
+	print_at(x, y, input->buttons_data[7] ? is_pressed : is_not_pressed);
+	x += 2;
+	print_at(x, y, input->buttons_data[6] ? is_pressed : is_not_pressed);
+	x += 3;
+	print_at(x, y, input->buttons_data[5] ? is_pressed : is_not_pressed);
+	x += 2;
+	print_at(x, y, input->buttons_data[4] ? is_pressed : is_not_pressed);
+	x += 3;
+	print_at(x, y, input->buttons_data[3] ? is_pressed : is_not_pressed);
+	x += 3;
+	print_at(x, y, input->buttons_data[2] ? is_pressed : is_not_pressed);
+	x += 2;
+	print_at(x, y, input->buttons_data[1] ? is_pressed : is_not_pressed);
+	x += 2;
+	print_at(x, y, input->buttons_data[0] ? is_pressed : is_not_pressed);
+
+	x += 6;
+
+	print_at(x, y, input->but_input_clear ? is_pressed : is_not_pressed); // D
+
+	x += 9;
+
+	print_at(
+		x, y, input->but_address_display ? is_pressed : is_not_pressed); // F
+
+	x += 6;
+
+	print_at(x, y, input->but_address_set ? is_pressed : is_not_pressed); // G
+
+	x += 6;
+
+	print_at(x, y, input->but_memory_read ? is_pressed : is_not_pressed); // H
+
+	x += 6;
+
+	print_at(x, y, input->but_memory_store ? is_pressed : is_not_pressed); // J
+
+	x += 8;
+
+	print_at(x, y, input->but_run_start ? is_pressed : is_not_pressed); // K
+
+	x += 5;
+
+	print_at(x, y, input->but_run_stop ? is_pressed : is_not_pressed); // L
 }
 static void print_leds(struct kenbak_output const * const o)
 {
@@ -337,6 +392,7 @@ int main(void)
 		}
 		kenbak_emu_init_input(d, true);
 		update_input(&d->input);
+		print_input(&d->input);
 
 		if(stepMode)
 		{
