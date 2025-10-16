@@ -9,6 +9,13 @@
 
 /**
  * - Does nothing (debug assertion, only), if NULL given as buffer pointer or
+ *   given buffer length is insufficient (must be at least 2 + 1).
+ */
+void mt_str_fill_with_hex(
+	char * const buf, size_t const buf_len, uint8_t const val);
+
+/**
+ * - Does nothing (debug assertion, only), if NULL given as buffer pointer or
  *   given buffer length is insufficient (must be at least 3 + 1).
  */
 void mt_str_fill_with_octal(
