@@ -95,17 +95,22 @@ static char wait_for_key_presses(char const a, char const b, char const c)
 
 // *****************************************************************************
 
-static void print_at(int const x, int const y, char const c)
+static void print_at(
+	int const x,
+	int const y,
+	char const c, 
+	bool const inverted)
 {
 	set_cursor_pos(x, y);
-	printf("%c", c);
+	printf(inverted ? "\033[7m%c\033[0m" : "%c", c);
 }
 
 /**
  * - Acts as if given string always fits in one line from given X position on!
  * - Does NOT clear the line before write!
  */
-static int print_str_at(int const x, int const y, char const * const str)
+static int print_str_at(
+	int const x, int const y, char const * const str, bool const inverted)
 {
 	assert(str != NULL);
 	
@@ -113,9 +118,22 @@ static int print_str_at(int const x, int const y, char const * const str)
 
 	while(str[++i] != '\0')
 	{
-		print_at(x + i, y, str[i]);
+		print_at(x + i, y, str[i], inverted);
 	}
 	return i;
+}
+
+static int print_raw_hex_byte_at(
+	int const x, int const y, uint8_t const val, bool const inverted)
+{
+	char buf[2 + 1];
+	int i = 0;
+
+	//int const buf_len = sizeof buf / sizeof *buf;
+
+	mt_str_fill_with_hex(buf, 2 + 1, val);
+
+	return print_str_at(x, y, buf, inverted);
 }
 
 static int print_byte_at(
@@ -138,7 +156,43 @@ static int print_byte_at(
 	mt_str_fill_with_binary(buf + i, 8 + 1, val);
 	i += 8;
 
-	return print_str_at(x, y, buf);
+	return print_str_at(x, y, buf, false);
+}
+
+static int print_memory_at(
+	int const x, int const y, struct kenbak_data const * const d)
+{
+	assert(KENBAK_DATA_DELAY_LINE_SIZE == 8 * 16);
+
+	int const p = (int)(*kenbak_get_mem_ptr(d, KENBAK_DATA_ADDR_P));
+
+	for(int row = 0; row < 8; ++row)
+	{
+		int const row_offset = row * 16;
+
+		for(int col = 0; col < 16; ++col)
+		{
+			print_raw_hex_byte_at(
+				x + 2 * col,
+				y + row,
+				d->delay_line_0[row_offset + col],
+				row_offset + col == p);
+		}
+	}
+
+	for(int row = 0; row < 8; ++row)
+	{
+		int const row_offset = row * 16;
+
+		for(int col = 0; col < 16; ++col)
+		{
+			print_raw_hex_byte_at(
+				x + 2 * col,
+				y + 1 + 8 + row,
+				d->delay_line_1[row_offset + col],
+				false);
+		}
+	}
 }
 
 static void print_kenbak(void)
@@ -173,86 +227,86 @@ static void print_input(struct kenbak_input const * const input)
 
 	int x = 5, y = 11;
 
-	print_at(x, y, input->buttons_data[7] ? is_pressed : is_not_pressed);
+	print_at(x, y, input->buttons_data[7] ? is_pressed : is_not_pressed, false);
 	x += 2;
-	print_at(x, y, input->buttons_data[6] ? is_pressed : is_not_pressed);
+	print_at(x, y, input->buttons_data[6] ? is_pressed : is_not_pressed, false);
 	x += 3;
-	print_at(x, y, input->buttons_data[5] ? is_pressed : is_not_pressed);
+	print_at(x, y, input->buttons_data[5] ? is_pressed : is_not_pressed, false);
 	x += 2;
-	print_at(x, y, input->buttons_data[4] ? is_pressed : is_not_pressed);
+	print_at(x, y, input->buttons_data[4] ? is_pressed : is_not_pressed, false);
 	x += 3;
-	print_at(x, y, input->buttons_data[3] ? is_pressed : is_not_pressed);
+	print_at(x, y, input->buttons_data[3] ? is_pressed : is_not_pressed, false);
 	x += 3;
-	print_at(x, y, input->buttons_data[2] ? is_pressed : is_not_pressed);
+	print_at(x, y, input->buttons_data[2] ? is_pressed : is_not_pressed, false);
 	x += 2;
-	print_at(x, y, input->buttons_data[1] ? is_pressed : is_not_pressed);
+	print_at(x, y, input->buttons_data[1] ? is_pressed : is_not_pressed, false);
 	x += 2;
-	print_at(x, y, input->buttons_data[0] ? is_pressed : is_not_pressed);
+	print_at(x, y, input->buttons_data[0] ? is_pressed : is_not_pressed, false);
 
 	x += 6;
 
-	print_at(x, y, input->but_input_clear ? is_pressed : is_not_pressed); // D
+	print_at(x, y, input->but_input_clear ? is_pressed : is_not_pressed, false); // D
 
 	x += 9;
 
 	print_at(
-		x, y, input->but_address_display ? is_pressed : is_not_pressed); // F
+		x, y, input->but_address_display ? is_pressed : is_not_pressed, false); // F
 
 	x += 6;
 
-	print_at(x, y, input->but_address_set ? is_pressed : is_not_pressed); // G
+	print_at(x, y, input->but_address_set ? is_pressed : is_not_pressed, false); // G
 
 	x += 6;
 
-	print_at(x, y, input->but_memory_read ? is_pressed : is_not_pressed); // H
+	print_at(x, y, input->but_memory_read ? is_pressed : is_not_pressed, false); // H
 
 	x += 6;
 
-	print_at(x, y, input->but_memory_store ? is_pressed : is_not_pressed); // J
+	print_at(x, y, input->but_memory_store ? is_pressed : is_not_pressed, false); // J
 
 	x += 8;
 
-	print_at(x, y, input->but_run_start ? is_pressed : is_not_pressed); // K
+	print_at(x, y, input->but_run_start ? is_pressed : is_not_pressed, false); // K
 
 	x += 5;
 
-	print_at(x, y, input->but_run_stop ? is_pressed : is_not_pressed); // L
+	print_at(x, y, input->but_run_stop ? is_pressed : is_not_pressed, false); // L
 }
 static void print_leds(struct kenbak_output const * const o)
 {
 	int x = 5, y = 2;
 
-	print_at(x, y, o->led_bit_7 ? '1' : '0');
+	print_at(x, y, o->led_bit_7 ? '1' : '0', false);
 	x += 2;
-	print_at(x, y, o->led_bit_6 ? '1' : '0');
+	print_at(x, y, o->led_bit_6 ? '1' : '0', false);
 	x += 3;
-	print_at(x, y, o->led_bit_5 ? '1' : '0');
+	print_at(x, y, o->led_bit_5 ? '1' : '0', false);
 	x += 2;
-	print_at(x, y, o->led_bit_4 ? '1' : '0');
+	print_at(x, y, o->led_bit_4 ? '1' : '0', false);
 	x += 3;
-	print_at(x, y, o->led_bit_3 ? '1' : '0');
+	print_at(x, y, o->led_bit_3 ? '1' : '0', false);
 	x += 3;
-	print_at(x, y, o->led_bit_2 ? '1' : '0');
+	print_at(x, y, o->led_bit_2 ? '1' : '0', false);
 	x += 2;
-	print_at(x, y, o->led_bit_1 ? '1' : '0');
+	print_at(x, y, o->led_bit_1 ? '1' : '0', false);
 	x += 2;
-	print_at(x, y, o->led_bit_0 ? '1' : '0');
+	print_at(x, y, o->led_bit_0 ? '1' : '0', false);
 
 	x += 6;
 
-	print_at(x, y, o->led_input_clear ? '1' : '0');
+	print_at(x, y, o->led_input_clear ? '1' : '0', false);
 
 	x += 15;
 
-	print_at(x, y, o->led_address_set ? '1' : '0');
+	print_at(x, y, o->led_address_set ? '1' : '0', false);
 
 	x += 12;
 
-	print_at(x, y, o->led_memory_store ? '1' : '0');
+	print_at(x, y, o->led_memory_store ? '1' : '0', false);
 
 	x += 13;
 
-	print_at(x, y, o->led_run_stop ? '1' : '0');
+	print_at(x, y, o->led_run_stop ? '1' : '0', false);
 }
 
 /**
@@ -443,11 +497,12 @@ int main(void)
 		//
 		print_leds(&d->output);
 
-		print_str_at(0, 16, kenbak_state_get_str(d->state));
+		print_str_at(0, 16, kenbak_state_get_str(d->state), false);
 
 		// Overdone (printing everything each time):
 		//
-		print_str_at(3, 16, stepMode ? "[x] Step mode" : "[ ] Step mode");
+		print_str_at(
+			3, 16, stepMode ? "[x] Step mode" : "[ ] Step mode", false);
 
 		print_byte_at(0, 18, 'A', d->delay_line_0[KENBAK_DATA_ADDR_A]);
 		print_byte_at(0, 19, 'B', d->delay_line_0[KENBAK_DATA_ADDR_B]);
@@ -471,11 +526,15 @@ int main(void)
 			print_str_at(
 				16, // Hard-coded
 				21,
-				buf);
+				buf,
+				false);
 		}
 
 		print_byte_at(0, 23, 'W', d->reg_w);
 		print_byte_at(0, 24, 'I', d->reg_i);
+		print_byte_at(0, 25, 'K', d->reg_k);
+
+		print_memory_at(41, 13, d);
 	} while(true);
 
 	set_cursor_visibility(true);
