@@ -46,7 +46,8 @@ static uint8_t get_rotated_right(uint8_t const val, int const places)
 /**
  * - Is not static.
  */
-uint8_t* kenbak_get_mem_ptr(struct kenbak_data * const d, uint8_t const addr)
+uint8_t* kenbak_emu_get_mem_ptr(
+    struct kenbak_data * const d, uint8_t const addr)
 {
     if(addr < KENBAK_DATA_DELAY_LINE_SIZE)
     {
@@ -58,12 +59,12 @@ uint8_t* kenbak_get_mem_ptr(struct kenbak_data * const d, uint8_t const addr)
 static void mem_write(
     struct kenbak_data * const d, uint8_t const addr, uint8_t const val)
 {
-    *kenbak_get_mem_ptr(d, addr) = val;
+    *kenbak_emu_get_mem_ptr(d, addr) = val;
 }
 
 static uint8_t mem_read(struct kenbak_data * const d, uint8_t const addr)
 {
-    return *kenbak_get_mem_ptr(d, addr);
+    return *kenbak_emu_get_mem_ptr(d, addr);
 }
 
 // *****************************************************************************

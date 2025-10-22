@@ -164,7 +164,7 @@ static int print_memory_at(
 {
 	assert(KENBAK_DATA_DELAY_LINE_SIZE == 8 * 16);
 
-	int const p = (int)(*kenbak_get_mem_ptr(d, KENBAK_DATA_ADDR_P));
+	int const p = (int)(*kenbak_emu_get_mem_ptr(d, KENBAK_DATA_ADDR_P));
 
 	for(int row = 0; row < 8; ++row)
 	{
@@ -378,7 +378,7 @@ static void fill_mem(
 
 	for(int i = 0; i < byte_count; ++i)
 	{
-		uint8_t * const cur_ptr = kenbak_get_mem_ptr(d, addr + i);
+		uint8_t * const cur_ptr = kenbak_emu_get_mem_ptr(d, addr + i);
 
 		*cur_ptr = bytes[i];
 	}
@@ -405,56 +405,56 @@ int main(void)
 		// 
 		// *=3 // KENBAK_DATA_ADDR_P
 		//
-		static int const infinite_count_up_i = KENBAK_DATA_ADDR_P;
-		static uint8_t const infinite_count_up[] = {
-			0004, //  3 004 P = 4
-			0023, //  4 023 LOAD-A constant
-			0000, //  5 - constant -
-			0034, //  6 034 STORE-A memory
-			0200, //  7 - address -
-			0003, //  8 003 ADD-A constant
-			0001, //  9 - constant -
-			0223, // 10 223 LOAD-X constant
-			0100, // 11 - constant -
-			0213, // 12 213 SUB-X constant
-			0001, // 13 - constant -
-			0243, // 14 243 JPD-X != 0
-			0014, // 15 - address -
-			0343, // 16 343 JPD-Unc. "!= 0"
-			0006, // 17 - address -
-		};
-		fill_mem(
-			infinite_count_up,
-			(int)(sizeof infinite_count_up),
-			infinite_count_up_i,
-			d);
+		//static int const infinite_count_up_i = KENBAK_DATA_ADDR_P;
+		//static uint8_t const infinite_count_up[] = {
+		//	0004, //  3 004 P = 4
+		//	0023, //  4 023 LOAD-A constant
+		//	0000, //  5 - constant -
+		//	0034, //  6 034 STORE-A memory
+		//	0200, //  7 - address -
+		//	0003, //  8 003 ADD-A constant
+		//	0001, //  9 - constant -
+		//	0223, // 10 223 LOAD-X constant
+		//	0100, // 11 - constant -
+		//	0213, // 12 213 SUB-X constant
+		//	0001, // 13 - constant -
+		//	0243, // 14 243 JPD-X != 0
+		//	0014, // 15 - address -
+		//	0343, // 16 343 JPD-Unc. "!= 0"
+		//	0006, // 17 - address -
+		//};
+		//fill_mem(
+		//	infinite_count_up,
+		//	(int)(sizeof infinite_count_up),
+		//	infinite_count_up_i,
+		//	d);
 
 		// Own: Rotate a bit, with inner delay loop (countdown)
 		// 
 		// *=3 // KENBAK_DATA_ADDR_P
 		//
-		//static int const infinite_rotate_i = KENBAK_DATA_ADDR_P;
-		//static uint8_t const infinite_rotate[] = {
-		//	0004, //  3 004 P = 4
-		//	0023, //  4 023 LOAD-A constant
-		//	0200, //  5 - constant -
-		//	0311, //  6 311 ROTATE_LEFT_1-A
-		//	0034, //  7 034 STORE-A memory
-		//	0200, //  8 - address -
-		//	0223, //  9 223 LOAD-X constant
-		//	0040, // 10 - constant -
-		//	0213, // 11 213 SUB-X constant
-		//	0001, // 12 - constant -
-		//	0243, // 13 243 JPD-X != 0
-		//	0013, // 14 - address -
-		//	0343, // 15 343 JPD-Unc. "!= 0"
-		//	0006  // 16 - address -
-		//};
-		//for(int i = 0; i < (int)(sizeof infinite_rotate); ++i)
-		//{
-		//	// Hard-coded use of delay line zero.
-		//	d->delay_line_0[infinite_rotate_i + i] = infinite_rotate[i];
-		//}
+		static int const infinite_rotate_i = KENBAK_DATA_ADDR_P;
+		static uint8_t const infinite_rotate[] = {
+			0004, //  3 004 P = 4
+			0023, //  4 023 LOAD-A constant
+			0200, //  5 - constant -
+			0311, //  6 311 ROTATE_LEFT_1-A
+			0034, //  7 034 STORE-A memory
+			0200, //  8 - address -
+			0223, //  9 223 LOAD-X constant
+			0040, // 10 - constant -
+			0213, // 11 213 SUB-X constant
+			0001, // 12 - constant -
+			0243, // 13 243 JPD-X != 0
+			0013, // 14 - address -
+			0343, // 15 343 JPD-Unc. "!= 0"
+			0006  // 16 - address -
+		};
+		fill_mem(
+			infinite_rotate,
+			(int)(sizeof infinite_rotate),
+			infinite_rotate_i,
+			d);
 
 		// EX 3-1
 		//
@@ -572,8 +572,8 @@ int main(void)
 			kenbak_instr_fill_str(
 				buf,
 				buf_len,
-				*kenbak_get_mem_ptr(d, first_byte_addr),
-				*kenbak_get_mem_ptr(d, second_byte_addr));
+				*kenbak_emu_get_mem_ptr(d, first_byte_addr),
+				*kenbak_emu_get_mem_ptr(d, second_byte_addr));
 
 			print_str_at(
 				16, // Hard-coded

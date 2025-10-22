@@ -178,7 +178,8 @@
 
 #include "kenbak_data.h"
 
-uint8_t* kenbak_get_mem_ptr(struct kenbak_data * const d, uint8_t const addr);
+uint8_t* kenbak_emu_get_mem_ptr(
+    struct kenbak_data * const d, uint8_t const addr);
 
 void kenbak_emu_init_input(
     struct kenbak_data* const d, bool const keep_switch_power_on);
