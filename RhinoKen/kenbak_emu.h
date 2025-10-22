@@ -68,7 +68,6 @@
 //   for each update(/frame) we would take 4800 steps / 25 = 192 steps per
 //   update.
 
-
 // ^CP = Basic system clock (square wave), output of the clock pulse generator,
 //       that has the RC multivibrator as input.
 
@@ -170,6 +169,9 @@
 
 // TODO: The 031X NOOP is implemented as 1-byte NOOP, but this is probably wrong
 //       (most likely "takes" two bytes)!
+
+// TODO: On a Kenbak-1, single-stepping is achieved by holding the stop button
+//       down while pressing the start button!
 
 #ifndef KENBAK_EMU
 #define KENBAK_EMU
