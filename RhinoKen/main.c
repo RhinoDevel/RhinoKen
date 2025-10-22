@@ -383,33 +383,60 @@ int main(void)
 //
 #ifndef NDEBUG
 	{
+		// Own: Count up (with delay loop).
+		// 
+		// *=3 // KENBAK_DATA_ADDR_P
+		//
+		static int const infinite_count_up_i = KENBAK_DATA_ADDR_P;
+		static uint8_t const infinite_count_up[] = {
+			0004, //  3 004 P = 4
+			0023, //  4 023 LOAD-A constant
+			0000, //  5 - constant -
+			0034, //  6 034 STORE-A memory
+			0200, //  7 - address -
+			0003, //  8 003 ADD-A constant
+			0001, //  9 - constant -
+			0223, // 10 223 LOAD-X constant
+			0100, // 11 - constant -
+			0213, // 12 213 SUB-X constant
+			0001, // 13 - constant -
+			0243, // 14 243 JPD-X != 0
+			0014, // 15 - address -
+			0343, // 16 343 JPD-Unc. "!= 0"
+			0006, // 17 - address -
+		};
+		for(int i = 0; i < (int)(sizeof infinite_count_up); ++i)
+		{
+			// Hard-coded use of delay line zero.
+			d->delay_line_0[infinite_count_up_i + i] = infinite_count_up[i];
+		}
+
 		// Own: Rotate a bit, with inner delay loop (countdown)
 		// 
 		// *=3 // KENBAK_DATA_ADDR_P
 		//
-		static int const infinite_rotate_i = KENBAK_DATA_ADDR_P;
-		static uint8_t const infinite_rotate[] = {
-			0004, //  3 004 P = 4
-			0023, //  4 023 LOAD-A constant
-			0200, //  5 - constant -
-			0311, //  6 311 ROTATE_LEFT_1-A
-			0034, //  7 034 STORE-A memory
-			0200, //  8 - address -
-			0223, //  9 223 LOAD-X constant
-			0040, // 10 - constant -
-			0213, // 11 213 SUB-X constant
-			0001, // 12 - constant -
-			0243, // 13 243 JPD-X != 0
-			0013, // 14 - address -
-			0343, // 15 343 JPD-Unc. "!= 0"
-			0006  // 16 - address -
-		};
-
-		for(int i = 0; i < (int)(sizeof infinite_rotate); ++i)
-		{
-			// Hard-coded use of delay line zero.
-			d->delay_line_0[infinite_rotate_i + i] = infinite_rotate[i];
-		}
+		//static int const infinite_rotate_i = KENBAK_DATA_ADDR_P;
+		//static uint8_t const infinite_rotate[] = {
+		//	0004, //  3 004 P = 4
+		//	0023, //  4 023 LOAD-A constant
+		//	0200, //  5 - constant -
+		//	0311, //  6 311 ROTATE_LEFT_1-A
+		//	0034, //  7 034 STORE-A memory
+		//	0200, //  8 - address -
+		//	0223, //  9 223 LOAD-X constant
+		//	0040, // 10 - constant -
+		//	0213, // 11 213 SUB-X constant
+		//	0001, // 12 - constant -
+		//	0243, // 13 243 JPD-X != 0
+		//	0013, // 14 - address -
+		//	0343, // 15 343 JPD-Unc. "!= 0"
+		//	0006  // 16 - address -
+		//};
+		//for(int i = 0; i < (int)(sizeof infinite_rotate); ++i)
+		//{
+		//	// Hard-coded use of delay line zero.
+		//	d->delay_line_0[infinite_rotate_i + i] = infinite_rotate[i];
+		//}
 
 		// EX 3-1
 		//
