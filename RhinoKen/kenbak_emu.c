@@ -749,7 +749,7 @@ static int step_in_sn(struct kenbak_data * const d)
         {
             assert(d->sig_r == KENBAK_DATA_ADDR_A);
 
-            result = -d->reg_w; // "Arithmetic complement" // TODO: Verify (e.g. -128 => -128)!
+            result = -d->reg_w; // "Arithmetic complement".
 
             assert(d->sig_inc == 255);
             d->sig_inc = 2;
