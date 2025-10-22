@@ -405,8 +405,8 @@ int main(void)
 		// 
 		// *=3 // KENBAK_DATA_ADDR_P
 		//
-		//static int const infinite_count_up_i = KENBAK_DATA_ADDR_P;
-		//static uint8_t const infinite_count_up[] = {
+		//static int const example_addr = KENBAK_DATA_ADDR_P;
+		//static uint8_t const example_bytes[] = {
 		//	0004, //  3 004 P = 4
 		//	0023, //  4 023 LOAD-A constant
 		//	0000, //  5 - constant -
@@ -423,54 +423,52 @@ int main(void)
 		//	0343, // 16 343 JPD-Unc. "!= 0"
 		//	0006, // 17 - address -
 		//};
-		//fill_mem(
-		//	infinite_count_up,
-		//	(int)(sizeof infinite_count_up),
-		//	infinite_count_up_i,
-		//	d);
 
 		// Own: Rotate a bit, with inner delay loop (countdown)
 		// 
 		// *=3 // KENBAK_DATA_ADDR_P
 		//
-		static int const infinite_rotate_i = KENBAK_DATA_ADDR_P;
-		static uint8_t const infinite_rotate[] = {
-			0004, //  3 004 P = 4
-			0023, //  4 023 LOAD-A constant
-			0200, //  5 - constant -
-			0311, //  6 311 ROTATE_LEFT_1-A
-			0034, //  7 034 STORE-A memory
-			0200, //  8 - address -
-			0223, //  9 223 LOAD-X constant
-			0040, // 10 - constant -
-			0213, // 11 213 SUB-X constant
-			0001, // 12 - constant -
-			0243, // 13 243 JPD-X != 0
-			0013, // 14 - address -
-			0343, // 15 343 JPD-Unc. "!= 0"
-			0006  // 16 - address -
-		};
-		fill_mem(
-			infinite_rotate,
-			(int)(sizeof infinite_rotate),
-			infinite_rotate_i,
-			d);
+		//static int const example_addr = KENBAK_DATA_ADDR_P;
+		//static uint8_t const example_bytes[] = {
+		//	0004, //  3 004 P = 4
+		//	0023, //  4 023 LOAD-A constant
+		//	0200, //  5 - constant -
+		//	0311, //  6 311 ROTATE_LEFT_1-A
+		//	0034, //  7 034 STORE-A memory
+		//	0200, //  8 - address -
+		//	0223, //  9 223 LOAD-X constant
+		//	0040, // 10 - constant -
+		//	0213, // 11 213 SUB-X constant
+		//	0001, // 12 - constant -
+		//	0243, // 13 243 JPD-X != 0
+		//	0013, // 14 - address -
+		//	0343, // 15 343 JPD-Unc. "!= 0"
+		//	0006  // 16 - address -
+		//};
 
 		// EX 3-1
 		//
 		// *=3
 		//
-		//d->delay_line_0[i++] = 0004; // 3 004 P = 4
-		//assert(i == 0x04);
-		//d->delay_line_0[i++] = 0023; // 4 023 A LOAD constant
-		//d->delay_line_0[i++] = 0000; // 5 000
-		//d->delay_line_0[i++] = 0034; // 6 034 A STORE memory
-		//d->delay_line_0[i++] = 0200; // 7 200
-		//d->delay_line_0[i++] = 0000; // 8 000 HALT 
-		//d->delay_line_0[i++] = 0003; // 9 003 A ADD constant
-		//d->delay_line_0[i++] = 0001; // A 001
-		//d->delay_line_0[i++] = 0344; // B 344 Unconditional JPD
-		//d->delay_line_0[i++] = 0006; // C 006
+		static int const example_addr = KENBAK_DATA_ADDR_P;
+		static uint8_t const example_bytes[] = {
+		    0004, // 3 004 P = 4
+			0023, // 4 023 A LOAD constant
+			0000, // 5 000
+			0034, // 6 034 A STORE memory
+			0200, // 7 200
+			0000, // 8 000 HALT 
+			0003, // 9 003 A ADD constant
+			0001, // A 001
+			0344, // B 344 Unconditional JPD
+			0006  // C 006
+		};
+
+		fill_mem(
+			example_bytes,
+			(int)(sizeof example_bytes),
+			example_addr,
+			d);
 	}
 #endif //NDEBUG
 
