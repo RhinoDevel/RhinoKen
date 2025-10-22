@@ -366,6 +366,24 @@ static void update_input(struct kenbak_input * const input)
 	}
 }
 
+static void fill_mem(
+	uint8_t const * const bytes,
+	int const byte_count,
+	uint8_t const addr,
+	struct kenbak_data * const d)
+{
+	assert(bytes != NULL);
+	assert(d != NULL);
+	assert((int)addr + byte_count - 1 < 256);
+
+	for(int i = 0; i < byte_count; ++i)
+	{
+		uint8_t * const cur_ptr = kenbak_get_mem_ptr(d, addr + i);
+
+		*cur_ptr = bytes[i];
+	}
+}
+
 int main(void)
 {
 	struct kenbak_data * const d = kenbak_emu_create(true);
@@ -405,11 +423,11 @@ int main(void)
 			0343, // 16 343 JPD-Unc. "!= 0"
 			0006, // 17 - address -
 		};
-		for(int i = 0; i < (int)(sizeof infinite_count_up); ++i)
-		{
-			// Hard-coded use of delay line zero.
-			d->delay_line_0[infinite_count_up_i + i] = infinite_count_up[i];
-		}
+		fill_mem(
+			infinite_count_up,
+			(int)(sizeof infinite_count_up),
+			infinite_count_up_i,
+			d);
 
 		// Own: Rotate a bit, with inner delay loop (countdown)
 		// 
