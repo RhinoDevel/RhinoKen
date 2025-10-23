@@ -15,7 +15,7 @@
 uint8_t* kenbak_asm_exec(
 	char const * const txt,
 	int const txt_len,
-	char * * const out_msg,
-	int * const out_msg_len);
+	int * const out_len,
+	char * * const out_msg);
 
 #endif //KENBAK_ASM
