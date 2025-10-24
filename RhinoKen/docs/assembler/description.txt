@@ -1,0 +1,36 @@
+States
+------
+
+Legend:
+- - - -
+! = The detected "symbol" causes an error.
+* = The detected "symbol" causes the state to change.
+
+- Initial state: A
+
+State A: Initial state to memorize constants (optional).
+  Found:
+  - Comment       => Consume, until non-comment detected.
+  - Whitespace    => Consume, until non-whitespace detected.
+  - Constant      => Memorize constant name and value for replacements.
+  * Anything else => State B.
+  
+State C: Anything, but constants.
+  Found:
+  - Comment                     => Consume, until non-comment detected.
+  - Whitespace                  => Consume, until non-whitespace detected.
+  - Location counter assignment => Apply (ascending allowed, only).
+  - Bytes                       => Add to output at current position
+                                   (labels are allowed here, too).
+  - Label                       => Memorize label and its address.
+  - Instruction                 => Assemble.
+
+Notes
+-----
+
+- No differentiation between upper and lower case.
+
+- Initial location counter value will be 0.
+
+- Bytes between location counter assignments (which must be ascending) will be
+  set to zero in the assembly output.
