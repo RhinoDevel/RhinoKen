@@ -11,6 +11,8 @@
 #include "kenbak_emu.h"
 #include "kenbak_data.h"
 
+#include "kenbak_asm.h"
+
 // See kenbak_emu.h:
 //
 #define MT_FPS 25
@@ -160,10 +162,11 @@ static int print_byte_at(
 }
 
 static int print_memory_at(
-	int const x, int const y, struct kenbak_data const * const d)
+	int const x, int const y, struct kenbak_data * const d)
 {
 	assert(KENBAK_DATA_DELAY_LINE_SIZE == 8 * 16);
 
+	int ret_val = 0;
 	int const p = (int)(*kenbak_emu_get_mem_ptr(d, KENBAK_DATA_ADDR_P));
 
 	for(int row = 0; row < 8; ++row)
@@ -172,7 +175,7 @@ static int print_memory_at(
 
 		for(int col = 0; col < 16; ++col)
 		{
-			print_raw_hex_byte_at(
+			ret_val += print_raw_hex_byte_at(
 				x + 2 * col,
 				y + row,
 				d->delay_line_0[row_offset + col],
@@ -186,13 +189,15 @@ static int print_memory_at(
 
 		for(int col = 0; col < 16; ++col)
 		{
-			print_raw_hex_byte_at(
+			ret_val += print_raw_hex_byte_at(
 				x + 2 * col,
 				y + 1 + 8 + row,
 				d->delay_line_1[row_offset + col],
 				false);
 		}
 	}
+
+	return ret_val;
 }
 
 static void print_kenbak(void)
@@ -386,6 +391,28 @@ static void fill_mem(
 
 int main(void)
 {
+	// TODO: Testing:
+	//
+	{
+		int byte_count = 0;
+		char* msg = NULL;
+		uint8_t* bytes = kenbak_asm_exec("", 0, &byte_count, &msg);
+
+		if(msg != NULL)
+		{
+			printf("Assembler message: \"%s\"\n", msg);
+			free(msg);
+			msg = NULL;
+		}
+		if(bytes != NULL)
+		{
+			assert(0 < byte_count);
+			free(bytes);
+			bytes = NULL;
+			byte_count = 0;
+		}
+	}
+
 	struct kenbak_data * const d = kenbak_emu_create(true);
 	uint32_t last = 0;
 	bool stepMode = false;
