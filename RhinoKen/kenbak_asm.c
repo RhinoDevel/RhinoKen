@@ -22,7 +22,7 @@ uint8_t* kenbak_asm_exec(
 	assert(out_msg != NULL);
 
 	{
-		// Assuming 1 byte per character:
+		assert(sizeof(**out_msg) == 1);
 		*out_msg = malloc(s_err_len_not_implemented);
 		assert(*out_msg != NULL);
 		strcpy_s(*out_msg, s_err_len_not_implemented, s_err_not_implemented);
