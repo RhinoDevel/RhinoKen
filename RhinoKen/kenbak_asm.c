@@ -1,13 +1,14 @@
 
 // Marcel Timm, RhinoDevel, 2025oct23
 
-#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
 #include "kenbak_asm.h"
 
-static char const * const s_err_not_implemented = "Not implemented!";
-static int const s_err_len_not_implemented = sizeof s_err_len_not_implemented;
+static char const s_err_not_implemented[] = "Not implemented!";
+static int const s_err_len_not_implemented = sizeof s_err_not_implemented;
 
 uint8_t* kenbak_asm_exec(
 	char const * const txt,
@@ -19,6 +20,13 @@ uint8_t* kenbak_asm_exec(
 	assert(0 <= txt_len);
 	assert(out_len != NULL);
 	assert(out_msg != NULL);
+
+	{
+		// Assuming 1 byte per character:
+		*out_msg = malloc(s_err_len_not_implemented);
+		assert(*out_msg != NULL);
+		strcpy_s(*out_msg, s_err_len_not_implemented, s_err_not_implemented);
+	}
 
 	return NULL;
 }
