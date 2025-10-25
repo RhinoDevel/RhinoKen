@@ -15,7 +15,7 @@ State A: Initial state to memorize constants (optional).
   - Constant      => Memorize constant name and value for replacements.
   * Anything else => State B.
   
-State C: Anything, but constants.
+State B: Anything, but constants.
   Found:
   - Comment                     => Consume, until non-comment detected.
   - Whitespace                  => Consume, until non-whitespace detected.
@@ -27,6 +27,8 @@ State C: Anything, but constants.
 
 Notes
 -----
+
+- Supports ASCII, only (anything else may work, but not tested).
 
 - No differentiation between upper and lower case.
 
