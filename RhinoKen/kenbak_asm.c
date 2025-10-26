@@ -38,6 +38,35 @@ static int const s_err_len_not_implemented = sizeof s_err_not_implemented;
 // *** Functions:                                                            ***
 // *****************************************************************************
 
+static void clear_bytes(uint8_t * const bytes, int const byte_count)
+{
+	// Although would work (see loop, below):
+	assert(bytes != NULL);
+	assert(0 < byte_count);
+
+	for(int i = 0; i < byte_count; ++i)
+	{
+		bytes[i] = 0;
+	}
+}
+
+static int get_index_of(
+	char const * const arr, int const arr_len, char const val)
+{
+	// Although would work (see loop, below):
+	assert(arr != NULL);
+	assert(0 < arr_len);
+
+	for(int i = 0; i < arr_len; ++i)
+	{
+		if(arr[i] == val)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
 /**
  * - Given text position is the position of the first character to check.
  * - Function will increment the given text position only, if a whitespace was
@@ -155,16 +184,43 @@ static int consume_whitespaces_and_comments(
 	return ret_val;
 }
 
-static void clear_bytes(uint8_t * const bytes, int const byte_count)
+/**
+ * - Also consumes all whitespaces and comments in-between constants.
+ * - Given text position is the position of the first character to check.
+ * - Function will increase the given text position only, if at last one
+ *   constant was found.
+ * - Returns count of characters consumed. 
+ */
+static int read_constants(
+	char const * const txt, int const txt_len, int * const txt_pos)
 {
-	// Although would work (see loop, below):
-	assert(bytes != NULL);
-	assert(0 < byte_count);
+	static char const allowed_all[] = {
+		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+		'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 
-	for(int i = 0; i < byte_count; ++i)
+		'_'
+	};
+	static char const allowed_following[] = {
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+	};
+
+	int ret_val = 0;
+
+	do
 	{
-		bytes[i] = 0;
-	}
+		// TODO: Implement!
+
+		int const wsc_cnt = consume_whitespaces_and_comments(
+				txt, txt_len, txt_pos);
+
+		if(wsc_cnt == 0)
+		{
+			break;
+		}
+		ret_val += wsc_cnt;
+	} while(true);
+
+	return ret_val;
 }
 
 uint8_t* kenbak_asm_exec(
