@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <ctype.h>
 
 #include "kenbak_asm.h"
 
@@ -36,6 +37,31 @@ static int const s_err_len_not_implemented = sizeof s_err_not_implemented;
 // *** Functions:                                                            ***
 // *****************************************************************************
 
+/**
+ * - Given text position is the position of the first character to check.
+ * - Function will increment the given text position only, if a whitespace was
+ *   found.
+ */
+static void consume_whitespace(
+	char const * const txt, int const txt_len, int * const txt_pos)
+{
+	assert(txt != NULL);
+	assert(0 <= txt_len);
+	assert(txt_pos != NULL);
+	assert(0 <= *txt_pos);
+	assert(*txt_pos <= txt_len);
+
+	while(*txt_pos < txt_len);
+	{
+		if(!isspace((unsigned char)txt[*txt_pos]))
+		{
+			return;
+		}
+		++(*txt_pos);
+	}
+	return;
+}
+
 static void clear_bytes(uint8_t * const bytes, int const byte_count)
 {
 	// Although would work (see loop, below):
@@ -60,9 +86,13 @@ uint8_t* kenbak_asm_exec(
 	assert(out_msg != NULL);
 
 	uint8_t mem[256]; // Represents the Kenbak-1's (whole) memory.
-	int pos = 0; // The location counter (initially set to zero automatically).
+	int mem_loc = 0; // The location counter (initially set to 0 automatically).
+	
+	int txt_pos = 0; // Position in the input text file.
 
 	clear_bytes(mem, (int)(sizeof mem));
+
+	consume_whitespace(txt, txt_len, &txt_pos);
 
 	{
 		assert(sizeof **out_msg == 1);
