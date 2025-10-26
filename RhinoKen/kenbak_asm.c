@@ -119,6 +119,42 @@ static int consume_comment(
 	return ret_val;
 }
 
+/**
+ * - Consumes all whitespaces and comments (order is unimportant), until
+ *   something else is detected.
+ * - Given text position is the position of the first character to check.
+ * - Function will increase the given text position only, if whitespaces and/or
+ *   comments were found.
+ * - Returns count of characters consumed.
+ */
+static int consume_whitespaces_and_comments(
+	char const * const txt, int const txt_len, int * const txt_pos)
+{
+	int ret_val = 0;
+
+	do
+	{
+		int const cur_ws_count = consume_whitespace(txt, txt_len, txt_pos);
+
+		if(ret_val != 0 // If return value is 0, no comment check was done, yet.
+			&& cur_ws_count == 0)
+		{
+			break; // Done.
+		}
+		ret_val += cur_ws_count;
+
+		int const cur_comment_count = consume_comment(txt, txt_len, txt_pos);
+
+		if(cur_comment_count == 0)
+		{
+			break; // Done.
+		}
+		ret_val += cur_comment_count;
+	} while(true);
+
+	return ret_val;
+}
+
 static void clear_bytes(uint8_t * const bytes, int const byte_count)
 {
 	// Although would work (see loop, below):
@@ -149,8 +185,7 @@ uint8_t* kenbak_asm_exec(
 
 	clear_bytes(mem, (int)(sizeof mem));
 
-	consume_whitespace(txt, txt_len, &txt_pos);
-	consume_comment(txt, txt_len, &txt_pos);
+	consume_whitespaces_and_comments(txt, txt_len, &txt_pos);
 
 	{
 		assert(sizeof **out_msg == 1);
