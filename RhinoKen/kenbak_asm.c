@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdbool.h>
 #include <ctype.h>
 
 #include "kenbak_asm.h"
@@ -41,8 +42,9 @@ static int const s_err_len_not_implemented = sizeof s_err_not_implemented;
  * - Given text position is the position of the first character to check.
  * - Function will increment the given text position only, if a whitespace was
  *   found.
+ * - Returns count of whitespace characters consumed.
  */
-static void consume_whitespace(
+static int consume_whitespace(
 	char const * const txt, int const txt_len, int * const txt_pos)
 {
 	assert(txt != NULL);
@@ -51,15 +53,70 @@ static void consume_whitespace(
 	assert(0 <= *txt_pos);
 	assert(*txt_pos <= txt_len);
 
-	while(*txt_pos < txt_len);
+	int ret_val = 0;
+
+	while(*txt_pos < txt_len)
 	{
 		if(!isspace((unsigned char)txt[*txt_pos]))
 		{
-			return;
+			break;
 		}
+		++ret_val;
 		++(*txt_pos);
 	}
-	return;
+	return ret_val;
+}
+
+/**
+ * - A comment starts with a ';' and ends with a '\n'.
+ * - Given text position is the position of the first character to check.
+ * - Function will increase the given text position only, if a comment was
+ *   found.
+ * - Returns count of comment characters consumed.
+ */
+static int consume_comment(
+	char const * const txt, int const txt_len, int * const txt_pos)
+{
+	assert(txt != NULL);
+	assert(0 <= txt_len);
+	assert(txt_pos != NULL);
+	assert(0 <= *txt_pos);
+	assert(*txt_pos <= txt_len);
+
+	static char const begin = ';';
+	static char const end = '\n'; // In addition to reached text end.
+
+	int ret_val = 0;
+
+	if(*txt_pos == txt_len)
+	{
+		assert(*txt_pos == 0); // (would just do nothing, otherwise)
+		return ret_val/*0*/;
+	}
+
+	if(txt[*txt_pos] != begin)
+	{
+		return ret_val/*0*/; // No comment at current position.
+	}
+
+	// A comment starts at current position.
+
+	++ret_val/*ret_val = 1*/;
+	++(*txt_pos); // Go to next character (or end).
+
+	while(*txt_pos < txt_len)
+	{
+		char const cur_char = txt[*txt_pos];
+
+		++ret_val;
+		++(*txt_pos); // Always go to next character, here.
+
+		if(txt[*txt_pos] == end)
+		{
+			break; // End-comment character found, done.
+		}
+	}
+	return ret_val;
 }
 
 static void clear_bytes(uint8_t * const bytes, int const byte_count)
@@ -93,6 +150,7 @@ uint8_t* kenbak_asm_exec(
 	clear_bytes(mem, (int)(sizeof mem));
 
 	consume_whitespace(txt, txt_len, &txt_pos);
+	consume_comment(txt, txt_len, &txt_pos);
 
 	{
 		assert(sizeof **out_msg == 1);
