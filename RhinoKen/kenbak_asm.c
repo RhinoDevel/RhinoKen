@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <stdio.h>
 
 #include "kenbak_asm.h"
 
@@ -28,15 +29,28 @@
 // 255 = Input "register".
 
 // *****************************************************************************
-// *** Error messages:                                                       ***
+// *** Error message stuff:                                                  ***
 // *****************************************************************************
 
 static char const * const s_err_prefix_part_one = "ERROR: Pos. ";
 static char const * const s_err_prefix_part_two = ": ";
 
-static char const * const s_err_expected_constant = "Expected constant!";
-static char const * const s_err_constant_name_too_long = "Constant name too long!";
-static char const * const s_err_not_implemented = "Not implemented!";
+// *****************************************************************************
+// *** Allowed name characters and stuff (for constants and labels):         ***
+// *****************************************************************************
+
+#define MT_NAME_MAX_LEN 16 // For simplicity.
+
+static char const s_name_chars_allowed_all[] = {
+	'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+	'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+
+	'_'
+};
+
+static char const s_name_chars_allowed_following[] = {
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+};
 
 // *****************************************************************************
 // *** Functions:                                                            ***
@@ -52,41 +66,6 @@ static int get_dec_digit_count(unsigned int const val)
 		n /= 10;
 		++ret_val;
 	}while(0 < n);
-
-	return ret_val;
-}
-
-/**
- * - Caller takes ownership of returned string.
- */
-static char * create_msg(int const pos, char const * const msg)
-{
-	assert(msg != NULL);
-	assert(0 <= pos); // <=> Position must be smaller than UINT_MAX.
-
-	size_t const len_prefix_part_one = strlen(s_err_prefix_part_one);
-	size_t const len_pos = get_dec_digit_count((unsigned int)pos);
-	size_t const len_prefix_part_two = strlen(s_err_prefix_part_two);
-	size_t const len_msg = strlen(msg);
-	size_t const len =
-		len_prefix_part_one
-		+ len_pos
-		+ len_prefix_part_two
-		+ len_msg
-		+ 1;
-
-	char * const ret_val = malloc(len * sizeof *ret_val);
-	
-	assert(ret_val != NULL);
-	
-	sprintf_s(
-		ret_val,
-		len,
-		"%s%d%s%s",
-		s_err_prefix_part_one,
-		pos,
-		s_err_prefix_part_two,
-		msg);
 
 	return ret_val;
 }
@@ -118,6 +97,41 @@ static int get_index_of(
 		}
 	}
 	return -1;
+}
+
+/**
+ * - Caller takes ownership of returned string.
+ */
+static char * create_msg(int const pos, char const * const msg)
+{
+	assert(msg != NULL);
+	assert(0 <= pos); // <=> Position must be smaller than UINT_MAX.
+
+	size_t const len_prefix_part_one = strlen(s_err_prefix_part_one);
+	size_t const len_pos = get_dec_digit_count((unsigned int)pos);
+	size_t const len_prefix_part_two = strlen(s_err_prefix_part_two);
+	size_t const len_msg = strlen(msg);
+	size_t const len =
+		len_prefix_part_one
+		+ len_pos
+		+ len_prefix_part_two
+		+ len_msg
+		+ 1;
+
+	char * const ret_val = malloc(len * sizeof * ret_val);
+
+	assert(ret_val != NULL);
+
+	sprintf_s(
+		ret_val,
+		len,
+		"%s%d%s%s",
+		s_err_prefix_part_one,
+		pos,
+		s_err_prefix_part_two,
+		msg);
+
+	return ret_val;
 }
 
 /**
@@ -238,6 +252,95 @@ static int consume_whitespaces_and_comments(
 }
 
 /**
+ * - Caller takes ownership of returned string.
+ */
+static char * read_name(
+	char const * const txt,
+	int const txt_len,
+	int * const txt_pos,
+	char * * const out_msg)
+{
+	assert(txt != NULL);
+	assert(0 <= txt_len);
+	assert(txt_pos != NULL);
+	assert(0 <= *txt_pos);
+	assert(*txt_pos <= txt_len);
+	assert(out_msg != NULL && *out_msg == NULL);
+
+	char buf[MT_NAME_MAX_LEN];
+	int buf_pos = 0;
+	char cur_char = '\0';
+
+	if(*txt_pos == txt_len)
+	{
+		create_msg(*txt_pos, "End of text, expected beginning of name!");
+		return NULL;
+	}
+
+	cur_char = txt[*txt_pos];
+
+	if(get_index_of(
+		s_name_chars_allowed_all,
+		(int)(sizeof s_name_chars_allowed_all),
+		cur_char) == -1)
+	{
+		*out_msg = create_msg(
+			*txt_pos,
+			"Unexpected char. found, expected beginning of name!");
+		return NULL;
+	}
+
+	++(*txt_pos);
+	buf[buf_pos/*0*/] = cur_char;
+	++buf_pos;
+
+	while(*txt_pos < txt_len)
+	{
+		cur_char = txt[*txt_pos];
+
+		if(get_index_of(
+			s_name_chars_allowed_all,
+			(int)(sizeof s_name_chars_allowed_all),
+			cur_char) == -1
+			&& get_index_of(
+				s_name_chars_allowed_following,
+				(int)(sizeof s_name_chars_allowed_following),
+				cur_char) == -1)
+		{
+			break; // Reached next other character behind valid name.
+		}
+
+		// Another valid name character found.
+
+		if(buf_pos == (int)(sizeof buf))
+		{
+			*out_msg = create_msg(*txt_pos, "Name is too long!");
+			return NULL;
+		}
+
+		// Fits into buffer.
+
+		++(*txt_pos);
+		buf[buf_pos] = cur_char;
+		++buf_pos;
+	}
+
+	assert(0 < buf_pos);
+
+	char * const ret_val = malloc((buf_pos + 1) * sizeof *ret_val);
+
+	assert(ret_val != NULL);
+
+	for(int i = 0; i < buf_pos; ++i)
+	{
+		ret_val[i] = buf[i];
+	}
+	ret_val[buf_pos] = '\0';
+
+	return ret_val;
+}
+
+/**
  * - Also consumes all whitespaces and comments in-between constants.
  * - Given text position is the position of the first character to check.
  * - Function will increase the given text position only, if at last one
@@ -252,39 +355,29 @@ static int read_constants(
 	int * const txt_pos,
 	char * * const out_msg)
 {
-	static char const allowed_all[] = {
-		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
-		'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-
-		'_'
-	};
-	static char const allowed_following[] = {
-		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-	};
-
 	int ret_val = 0;
 
 	do
 	{
-		char name_buf[32 + 1];
-		char name_pos = 0;
-		char cur_char = txt[*txt_pos];
-
-		if(get_index_of(allowed_all, (int)(sizeof allowed_all), cur_char) == -1)
-		{
-			*out_msg = create_msg(*txt_pos, s_err_expected_constant);
-			return -1;
-		}
-		name_buf[name_pos] = cur_char;
-		++name_pos;
-
-		if(name_pos == (int)(sizeof name_buf))
-		{
-			*out_msg = create_msg(*txt_pos, s_err_constant_name_too_long);
-			return -1;
-		}
-
 		// TODO: Implement!
+
+		//char name_buf[32 + 1];
+		//char name_pos = 0;
+		//char cur_char = txt[*txt_pos];
+		//
+		//if(get_index_of(allowed_all, (int)(sizeof allowed_all), cur_char) == -1)
+		//{
+		//	*out_msg = create_msg(*txt_pos, s_err_expected_constant);
+		//	return -1;
+		//}
+		//name_buf[name_pos] = cur_char;
+		//++name_pos;
+		//
+		//if(name_pos == (int)(sizeof name_buf))
+		//{
+		//	*out_msg = create_msg(*txt_pos, s_err_constant_name_too_long);
+		//	return -1;
+		//}
 
 		int const wsc_cnt = consume_whitespaces_and_comments(
 				txt, txt_len, txt_pos);
@@ -333,6 +426,6 @@ uint8_t* kenbak_asm_exec(
 	assert(consumed == txt_len);
 
 	// TODO: Implement!
-	*out_msg = create_msg(txt_pos, s_err_not_implemented);
+	*out_msg = create_msg(txt_pos, "Not implemented!");
 	return NULL;
 }
