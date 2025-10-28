@@ -28,15 +28,68 @@
 // 255 = Input "register".
 
 // *****************************************************************************
-// *** Error messages and their lengths:                                     ***
+// *** Error messages:                                                       ***
 // *****************************************************************************
 
-static char const s_err_not_implemented[] = "Not implemented!";
-static int const s_err_len_not_implemented = sizeof s_err_not_implemented;
+static char const * const s_err_prefix_part_one = "ERROR: Pos. ";
+static char const * const s_err_prefix_part_two = ": ";
+
+static char const * const s_err_expected_constant = "Expected constant!";
+static char const * const s_err_constant_name_too_long = "Constant name too long!";
+static char const * const s_err_not_implemented = "Not implemented!";
 
 // *****************************************************************************
 // *** Functions:                                                            ***
 // *****************************************************************************
+
+static int get_dec_digit_count(unsigned int const val)
+{
+	int ret_val = 0;
+	unsigned int n = val;
+
+	do
+	{
+		n /= 10;
+		++ret_val;
+	}while(0 < n);
+
+	return ret_val;
+}
+
+/**
+ * - Caller takes ownership of returned string.
+ */
+static char * create_msg(int const pos, char const * const msg)
+{
+	assert(msg != NULL);
+	assert(0 <= pos); // <=> Position must be smaller than UINT_MAX.
+
+	size_t const len_prefix_part_one = strlen(s_err_prefix_part_one);
+	size_t const len_pos = get_dec_digit_count((unsigned int)pos);
+	size_t const len_prefix_part_two = strlen(s_err_prefix_part_two);
+	size_t const len_msg = strlen(msg);
+	size_t const len =
+		len_prefix_part_one
+		+ len_pos
+		+ len_prefix_part_two
+		+ len_msg
+		+ 1;
+
+	char * const ret_val = malloc(len * sizeof *ret_val);
+	
+	assert(ret_val != NULL);
+	
+	sprintf_s(
+		ret_val,
+		len,
+		"%s%d%s%s",
+		s_err_prefix_part_one,
+		pos,
+		s_err_prefix_part_two,
+		msg);
+
+	return ret_val;
+}
 
 static void clear_bytes(uint8_t * const bytes, int const byte_count)
 {
@@ -189,10 +242,15 @@ static int consume_whitespaces_and_comments(
  * - Given text position is the position of the first character to check.
  * - Function will increase the given text position only, if at last one
  *   constant was found.
- * - Returns count of characters consumed. 
+ * - Returns count of characters consumed.
+ * - Caller also takes ownership of returned message, if not NULL.
+ * - Returns -1 on error.
  */
 static int read_constants(
-	char const * const txt, int const txt_len, int * const txt_pos)
+	char const * const txt,
+	int const txt_len,
+	int * const txt_pos,
+	char * * const out_msg)
 {
 	static char const allowed_all[] = {
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
@@ -208,6 +266,24 @@ static int read_constants(
 
 	do
 	{
+		char name_buf[32 + 1];
+		char name_pos = 0;
+		char cur_char = txt[*txt_pos];
+
+		if(get_index_of(allowed_all, (int)(sizeof allowed_all), cur_char) == -1)
+		{
+			*out_msg = create_msg(*txt_pos, s_err_expected_constant);
+			return -1;
+		}
+		name_buf[name_pos] = cur_char;
+		++name_pos;
+
+		if(name_pos == (int)(sizeof name_buf))
+		{
+			*out_msg = create_msg(*txt_pos, s_err_constant_name_too_long);
+			return -1;
+		}
+
 		// TODO: Implement!
 
 		int const wsc_cnt = consume_whitespaces_and_comments(
@@ -239,16 +315,24 @@ uint8_t* kenbak_asm_exec(
 	
 	int txt_pos = 0; // Position in the input text file.
 
+	int consumed = 0; // For error checking.
+
 	clear_bytes(mem, (int)(sizeof mem));
 
-	consume_whitespaces_and_comments(txt, txt_len, &txt_pos);
+	consumed += consume_whitespaces_and_comments(txt, txt_len, &txt_pos);
+	
+	int const consumed_read_constants = read_constants(
+			txt, txt_len, &txt_pos, out_msg);
 
+	if(consumed_read_constants == -1)
 	{
-		assert(sizeof **out_msg == 1);
-		*out_msg = malloc(s_err_len_not_implemented);
 		assert(*out_msg != NULL);
-		strcpy_s(*out_msg, s_err_len_not_implemented, s_err_not_implemented);
+		return NULL;
 	}
 
+	assert(consumed == txt_len);
+
+	// TODO: Implement!
+	*out_msg = create_msg(txt_pos, s_err_not_implemented);
 	return NULL;
 }
