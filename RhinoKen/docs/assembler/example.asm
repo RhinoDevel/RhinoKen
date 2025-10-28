@@ -1,8 +1,16 @@
 ; (Optional) constant definitions are first, by definition:
 
-reg_a = 0
-reg_b = 1
-reg_x = 2
+reg_a =   ; This is the register A's address in memory.
+          ; This is another comment.
+    0     ; This is OK.
+
+reg_b ; This is also OK.
+   = 1
+   
+reg_x 
+   = 
+ 2 ; Even this is alright.
+
 reg_p = 3
 
 * = reg_x ; (Optional) location counter assignm. (must be a value or constant).
