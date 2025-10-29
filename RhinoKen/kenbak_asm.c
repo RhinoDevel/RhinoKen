@@ -28,6 +28,13 @@
 //
 // 255 = Input "register".
 
+struct kenbak_asm_constant
+{
+	char* name;
+	uint8_t val;
+	struct kenbak_asm_constant * next;
+};
+
 // *****************************************************************************
 // *** Error message stuff:                                                  ***
 // *****************************************************************************
@@ -52,9 +59,39 @@ static char const s_name_chars_allowed_following[] = {
 	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
 };
 
+static char const s_constant_sep = '=';
+
+static char const s_val_oct = '0';
+static char const s_val_hex = '$';
+
 // *****************************************************************************
 // *** Functions:                                                            ***
 // *****************************************************************************
+
+static void free_constants(struct kenbak_asm_constant * const first_constant)
+{
+	struct kenbak_asm_constant * cur_constant = first_constant;
+
+	while(cur_constant != NULL)
+	{
+		struct kenbak_asm_constant * next = cur_constant->next;
+
+		free(cur_constant);
+		cur_constant = next;
+	}
+}
+
+static void print_constants(struct kenbak_asm_constant * const first_constant)
+{
+	struct kenbak_asm_constant * cur_constant = first_constant;
+
+	while(cur_constant != NULL)
+	{
+		printf("%s = %d\n", cur_constant->name, (int)cur_constant->val);
+
+		cur_constant = cur_constant->next;
+	}
+}
 
 static int get_dec_digit_count(unsigned int const val)
 {
@@ -102,7 +139,7 @@ static int get_index_of(
 /**
  * - Caller takes ownership of returned string.
  */
-static char * create_msg(int const pos, char const * const msg)
+static char * create_err_msg(int const pos, char const * const msg)
 {
 	assert(msg != NULL);
 	assert(0 <= pos); // <=> Position must be smaller than UINT_MAX.
@@ -145,9 +182,7 @@ static int consume_whitespace(
 {
 	assert(txt != NULL);
 	assert(0 <= txt_len);
-	assert(txt_pos != NULL);
-	assert(0 <= *txt_pos);
-	assert(*txt_pos <= txt_len);
+	assert(txt_pos != NULL && 0 <= *txt_pos && *txt_pos <= txt_len);
 
 	int ret_val = 0;
 
@@ -175,9 +210,7 @@ static int consume_comment(
 {
 	assert(txt != NULL);
 	assert(0 <= txt_len);
-	assert(txt_pos != NULL);
-	assert(0 <= *txt_pos);
-	assert(*txt_pos <= txt_len);
+	assert(txt_pos != NULL && 0 <= *txt_pos && *txt_pos <= txt_len);
 
 	static char const begin = ';';
 	static char const end = '\n'; // In addition to reached text end.
@@ -186,7 +219,6 @@ static int consume_comment(
 
 	if(*txt_pos == txt_len)
 	{
-		assert(*txt_pos == 0); // (would just do nothing, otherwise)
 		return ret_val/*0*/;
 	}
 
@@ -253,50 +285,50 @@ static int consume_whitespaces_and_comments(
 
 /**
  * - Caller takes ownership of returned string.
+ * - Function will increase the given text position only, if a name was found.
+ * - Returns NULL and *out_err_msg == NULL, if no name is found.
+ * - Returns NULL and *out_err_msg != NULL, if an error occurred.
  */
-static char * read_name(
+static char * try_read_name(
 	char const * const txt,
 	int const txt_len,
 	int * const txt_pos,
-	char * * const out_msg)
+	char * * const out_err_msg)
 {
 	assert(txt != NULL);
 	assert(0 <= txt_len);
-	assert(txt_pos != NULL);
-	assert(0 <= *txt_pos);
-	assert(*txt_pos <= txt_len);
-	assert(out_msg != NULL && *out_msg == NULL);
+	assert(txt_pos != NULL && 0 <= *txt_pos && *txt_pos <= txt_len);
+	assert(out_err_msg != NULL && *out_err_msg == NULL);
 
 	char buf[MT_NAME_MAX_LEN];
 	int buf_pos = 0;
 	char cur_char = '\0';
+	int txt_pos_buf = *txt_pos;
 
-	if(*txt_pos == txt_len)
+	if(txt_pos_buf == txt_len)
 	{
-		create_msg(*txt_pos, "End of text, expected beginning of name!");
+		create_err_msg(txt_pos_buf, "End of text, expected beginning of name!");
 		return NULL;
 	}
 
-	cur_char = txt[*txt_pos];
+	cur_char = txt[txt_pos_buf];
 
 	if(get_index_of(
 		s_name_chars_allowed_all,
 		(int)(sizeof s_name_chars_allowed_all),
 		cur_char) == -1)
 	{
-		*out_msg = create_msg(
-			*txt_pos,
-			"Unexpected char. found, expected beginning of name!");
-		return NULL;
+		assert(*out_err_msg == NULL);
+		return NULL; // NOT an error (just no name found).
 	}
 
-	++(*txt_pos);
+	++txt_pos_buf;
 	buf[buf_pos/*0*/] = cur_char;
 	++buf_pos;
 
-	while(*txt_pos < txt_len)
+	while(txt_pos_buf < txt_len)
 	{
-		cur_char = txt[*txt_pos];
+		cur_char = txt[txt_pos_buf];
 
 		if(get_index_of(
 			s_name_chars_allowed_all,
@@ -314,13 +346,13 @@ static char * read_name(
 
 		if(buf_pos == (int)(sizeof buf))
 		{
-			*out_msg = create_msg(*txt_pos, "Name is too long!");
+			*out_err_msg = create_err_msg(txt_pos_buf, "Name is too long!");
 			return NULL;
 		}
 
 		// Fits into buffer.
 
-		++(*txt_pos);
+		++txt_pos_buf;
 		buf[buf_pos] = cur_char;
 		++buf_pos;
 	}
@@ -337,7 +369,239 @@ static char * read_name(
 	}
 	ret_val[buf_pos] = '\0';
 
+	*txt_pos = txt_pos_buf;
 	return ret_val;
+}
+
+/**
+ * - Function will increase the given text position only, if a value was found.
+ * - Returns count of characters consumed.
+ * - Also consumes any whitespace and/or comments behind the value!
+ * - Returns -1 and *out_err_msg != NULL, if an error occurred, caller takes
+ *   ownership of that message string.
+ */
+static int read_val(
+	char const * const txt,
+	int const txt_len,
+	int * const txt_pos,
+	uint8_t * const out_val,
+	char * * const out_err_msg)
+{
+	assert(txt != NULL);
+	assert(0 <= txt_len);
+	assert(txt_pos != NULL && 0 <= *txt_pos && *txt_pos <= txt_len);
+	assert(out_val != NULL);
+	assert(out_err_msg != NULL && *out_err_msg == NULL);
+
+	int consumed_buf = 0;
+	int txt_pos_buf = *txt_pos;
+	char cur_char = '\0';
+	uint8_t val = 0;
+
+	if(txt_pos_buf == txt_len)
+	{
+		// No more text.
+
+		*out_err_msg = create_err_msg(
+			txt_pos_buf, "No more input text, expected value of constant!");
+		return -1;
+	}
+
+	cur_char = txt[txt_pos_buf];
+	++txt_pos_buf;
+	if(cur_char == s_val_oct)
+	{
+		int fac = 64;
+
+		do
+		{
+			int cur_val = 0;
+			cur_char = txt[txt_pos_buf];
+			++txt_pos_buf;
+			++consumed_buf;
+
+			if(cur_char < '0')
+			{
+				*out_err_msg = create_err_msg(
+					txt_pos_buf, "Invalid octal digit detected (must be at least 0)!");
+				return -1;
+			}
+			if(fac == 64)
+			{
+				if('3' < cur_char)
+				{
+					*out_err_msg = create_err_msg(
+						txt_pos_buf, "Invalid octal digit detected (must be at most 3)!");
+					return -1;
+				}
+			}
+			else
+			{
+				if('7' < cur_char)
+				{
+					*out_err_msg = create_err_msg(
+						txt_pos_buf, "Invalid octal digit detected (must be at most 7)!");
+					return -1;
+				}
+			}
+			
+			//   2|   1 |   0
+			// 8^2| 8^1 | 8^0
+			//  64|   8 |   1
+
+			cur_val = (int)(cur_char);
+			cur_val -= (int)'0';
+			cur_val *= fac;
+			assert(cur_val < UINT8_MAX);
+			val += (uint8_t)cur_val;
+			if(fac == 1)
+			{
+				break;
+			}
+			fac /= 8;
+		} while(true);
+	}
+	else
+	{
+		if(cur_char == s_val_hex)
+		{
+			*out_err_msg = create_err_msg( // TODO: Implement!
+				txt_pos_buf, "Hexadecimal values are not implemented, yet!");
+			return -1;
+		}
+		else
+		{
+			*out_err_msg = create_err_msg( // TODO: Implement!
+				txt_pos_buf, "Decimal values are not implemented, yet!");
+			return -1;
+		}
+	}
+
+	int const wsc_count = consume_whitespaces_and_comments(
+			txt, txt_len, &txt_pos_buf);
+
+	if(wsc_count == 0)
+	{
+		*out_err_msg = create_err_msg(
+			txt_pos_buf,
+			"Expected white-space and/or comment after read value!");
+		return -1;
+	}
+	consumed_buf += wsc_count;
+
+	*txt_pos = txt_pos_buf;
+	*out_val = val;
+	return consumed_buf;
+}
+
+/**
+ * - Also consumes all whitespaces and comments in-between name and value.
+ * - Also consumes whitespaces and comments after last found value.
+ * - Function will increase the given text position only, if a name was found.
+ * - Returns count of characters consumed.
+ * - Returns 0 and *out_err_msg == NULL, if no name is found at beginning.
+ * - Returns -1 and *out_err_msg != NULL, if an error occurred, caller takes
+ *   ownership of that message string.
+ * - Caller takes ownership of kenbak_asm_constant->name, if set here (not done
+ *   on error of if no constant found).
+ */
+static int try_read_constant(
+	char const * const txt,
+	int const txt_len,
+	int * const txt_pos,
+	struct kenbak_asm_constant * const out_constant,
+	char * * const out_err_msg)
+{
+	assert(txt != NULL);
+	assert(0 <= txt_len);
+	assert(txt_pos != NULL && 0 <= *txt_pos && *txt_pos <= txt_len);
+	assert(out_constant != NULL);
+	assert(out_err_msg != NULL && *out_err_msg == NULL);
+
+	char* name = NULL;
+	uint8_t val = 0;
+	int consumed_buf = 0;
+	int txt_pos_buf = *txt_pos;
+
+	name = try_read_name(txt, txt_len, &txt_pos_buf, out_err_msg);
+	if(name == NULL)
+	{
+		if(*out_err_msg != NULL)
+		{
+			return -1; // An error occurred!
+		}
+		return 0; // Just no constant (name) found.
+	}
+	consumed_buf += (int)strlen(name);
+	assert(0 < strlen(name));
+
+	// The name of a constant was found.
+
+	consumed_buf += consume_whitespaces_and_comments(
+		txt, txt_len, &txt_pos_buf);
+
+	if(txt_pos_buf == txt_len)
+	{
+		// No more text.
+
+		free(name);
+		name = NULL;
+
+		*out_err_msg = create_err_msg(
+			txt_pos_buf,
+			"No more input text, expected value of constant (or something else)!");
+		return -1;
+	}
+
+	// There is more after the parsed name.
+
+	if(txt[txt_pos_buf] != s_constant_sep)
+	{
+		// Does not seem to be a constant. => Back to before the read name.
+		
+		free(name);
+		name = NULL;
+
+		return 0; // Not an error, just no constant found.
+	}
+	consumed_buf += 1;
+	++txt_pos_buf;
+
+	// Separator found and consumed.
+
+	consumed_buf += consume_whitespaces_and_comments(
+		txt, txt_len, &txt_pos_buf);
+
+	// Maybe existing comments and/or whitespace after separator consumed.
+
+	int const consumed_val = read_val(
+			txt, txt_len, &txt_pos_buf, &val, out_err_msg);
+
+	if(consumed_val == -1)
+	{
+		assert(*out_err_msg != NULL);
+		free(name);
+		name = NULL;
+		return -1;
+	}
+	if(consumed_val == 0)
+	{
+		assert(*out_err_msg == NULL);
+		free(name);
+		name = NULL;
+		*out_err_msg = create_err_msg(
+			txt_pos_buf, "Expected value of constant was not found!");
+		return -1;
+	}
+	consumed_buf += consumed_val;
+	
+	assert(*out_err_msg == NULL);
+	*txt_pos = txt_pos_buf;
+	out_constant->name = name; // Takes ownership.
+	name = NULL;
+	out_constant->val = val;
+	out_constant->next = NULL;
+	return consumed_buf;
 }
 
 /**
@@ -347,49 +611,85 @@ static char * read_name(
  *   constant was found.
  * - Returns count of characters consumed.
  * - Caller also takes ownership of returned message, if not NULL.
+ * - Caller takes ownership of returned linked list of constants, if not NULL.
  * - Returns -1 on error.
  */
 static int read_constants(
 	char const * const txt,
 	int const txt_len,
 	int * const txt_pos,
-	char * * const out_msg)
+	struct kenbak_asm_constant * * const out_first_constant,
+	char * * const out_err_msg)
 {
-	int ret_val = 0;
+	assert(txt != NULL);
+	assert(0 <= txt_len);
+	assert(txt_pos != NULL && 0 <= *txt_pos && *txt_pos <= txt_len);
+	assert(out_first_constant != NULL && *out_first_constant == NULL);
+	assert(out_err_msg != NULL && *out_err_msg == NULL);
+
+	int constant_count = 0;
+	int consumed_chars = 0;
+	int txt_pos_buf = *txt_pos;
+	struct kenbak_asm_constant * first_constant =
+		malloc(sizeof *first_constant);
+	struct kenbak_asm_constant * cur_constant = first_constant;
+	struct kenbak_asm_constant * prev_constant = NULL;
+	
+	assert(first_constant != NULL);
+	first_constant->name = NULL;
+	first_constant->val = 0;
+	first_constant->next = NULL; // Important!
 
 	do
 	{
-		// TODO: Implement!
+		int const constant_consumed = try_read_constant(
+				txt, txt_len, &txt_pos_buf, cur_constant, out_err_msg);
 
-		//char name_buf[32 + 1];
-		//char name_pos = 0;
-		//char cur_char = txt[*txt_pos];
-		//
-		//if(get_index_of(allowed_all, (int)(sizeof allowed_all), cur_char) == -1)
-		//{
-		//	*out_msg = create_msg(*txt_pos, s_err_expected_constant);
-		//	return -1;
-		//}
-		//name_buf[name_pos] = cur_char;
-		//++name_pos;
-		//
-		//if(name_pos == (int)(sizeof name_buf))
-		//{
-		//	*out_msg = create_msg(*txt_pos, s_err_constant_name_too_long);
-		//	return -1;
-		//}
-
-		int const wsc_cnt = consume_whitespaces_and_comments(
-				txt, txt_len, txt_pos);
-
-		if(wsc_cnt == 0)
+		if(constant_consumed == 0)
 		{
+			if(prev_constant != NULL)
+			{
+				assert(prev_constant->next == cur_constant);
+				prev_constant->next = NULL;
+				free(cur_constant);
+				cur_constant = prev_constant;
+				prev_constant = NULL; // Kind of wrong, but OK..
+			}
 			break;
 		}
-		ret_val += wsc_cnt;
+		if(constant_consumed == -1)
+		{
+			assert(*out_err_msg != NULL);
+			free_constants(first_constant);
+			return -1;
+		}
+
+		++constant_count;
+		consumed_chars += constant_consumed;
+		
+		struct kenbak_asm_constant * const next = malloc(sizeof *next);
+		
+		assert(next != NULL);
+		next->name = NULL;
+		next->val = 0;
+		next->next = NULL; // Important!
+		assert(cur_constant->next == NULL);
+		cur_constant->next = next;
+		prev_constant = cur_constant;
+		cur_constant = next;
 	} while(true);
 
-	return ret_val;
+	if(constant_count == 0)
+	{
+		assert(*out_err_msg == NULL);
+		free(first_constant);
+		first_constant = NULL;
+		return 0;
+	}
+	*txt_pos = txt_pos_buf;
+	*out_first_constant = first_constant; // Takes ownership.
+	first_constant = NULL;
+	return consumed_chars;
 }
 
 uint8_t* kenbak_asm_exec(
@@ -414,8 +714,9 @@ uint8_t* kenbak_asm_exec(
 
 	consumed += consume_whitespaces_and_comments(txt, txt_len, &txt_pos);
 	
+	struct kenbak_asm_constant * first_constant = NULL;
 	int const consumed_read_constants = read_constants(
-			txt, txt_len, &txt_pos, out_msg);
+			txt, txt_len, &txt_pos, &first_constant, out_msg);
 
 	if(consumed_read_constants == -1)
 	{
@@ -423,9 +724,10 @@ uint8_t* kenbak_asm_exec(
 		return NULL;
 	}
 
-	assert(consumed == txt_len);
+	print_constants(first_constant);
+	free_constants(first_constant);
 
 	// TODO: Implement!
-	*out_msg = create_msg(txt_pos, "Not implemented!");
+	*out_msg = create_err_msg(txt_pos, "Not implemented!");
 	return NULL;
 }

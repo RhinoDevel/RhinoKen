@@ -394,22 +394,42 @@ int main(void)
 	// TODO: Testing:
 	//
 	{
-		int byte_count = 0;
-		char* msg = NULL;
-		uint8_t* bytes = kenbak_asm_exec("", 0, &byte_count, &msg);
+		static char * const texts[] = {
+			//"",
+			//" ",
+			//";",
+			//"; ",
+			//"a=$af",
+			//"bc=27",
+			"c0d1_x=0000 a_=0377 b = 0123;",
+			"a_=0377;OK",
+		};
+		static int texts_count = (int)(sizeof texts / sizeof * texts);
 
-		if(msg != NULL)
+		for(int i = 0; i < texts_count; ++i)
 		{
-			printf("Assembler message: \"%s\"\n", msg);
-			free(msg);
-			msg = NULL;
-		}
-		if(bytes != NULL)
-		{
-			assert(0 < byte_count);
-			free(bytes);
-			bytes = NULL;
-			byte_count = 0;
+			int byte_count = 0;
+			char* msg = NULL;
+			int const txt_len = (int)strlen(texts[i]);
+			uint8_t* bytes = kenbak_asm_exec(
+				texts[i],
+				txt_len,
+				&byte_count,
+				&msg);
+
+			if(msg != NULL)
+			{
+				printf("Assembler message %d: \"%s\"\n", i, msg);
+				free(msg);
+				msg = NULL;
+			}
+			if(bytes != NULL)
+			{
+				assert(0 < byte_count);
+				free(bytes);
+				bytes = NULL;
+				byte_count = 0;
+			}
 		}
 	}
 
