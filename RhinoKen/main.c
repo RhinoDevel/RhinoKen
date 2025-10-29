@@ -401,8 +401,23 @@ int main(void)
 			//"; ",
 			//"a=$af",
 			//"bc=27",
-			"c0d1_x=0000 a_=0377 b = 0123;",
-			"a_=0377;OK",
+			//"c0d1_x=0000 a_=0377 b = 0123;",
+			//"a_=0377;OK",
+			"; (Optional) constant definitions are first, by definition:\n"
+				"\n"
+				"reg_a =   ; This is the register A's address in memory.\n"
+				"          ; This is another comment.\n"
+				"    0001  ; This is OK.\n"
+				"\n"
+				"reg_b ; This is also OK.\n"
+				"   = 0002\n"
+				"   \n"
+				"reg_x \n"
+				"   = \n"
+				" 0003 ; Even this is alright.\n"
+				"\n"
+				"reg_p = 0004\n"
+				"\n"
 		};
 		static int texts_count = (int)(sizeof texts / sizeof * texts);
 
@@ -431,6 +446,8 @@ int main(void)
 				byte_count = 0;
 			}
 		}
+
+		return 0;
 	}
 
 	struct kenbak_data * const d = kenbak_emu_create(true);
