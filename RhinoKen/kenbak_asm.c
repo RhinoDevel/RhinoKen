@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include "kenbak_asm.h"
+#include "kenbak_asm_constant.h"
 
 // *****************************************************************************
 // *** Notes:                                                                ***
@@ -27,13 +28,6 @@
 // 131 = "Register" X's overflow (bit 0) and carry (bit 1) flags.
 //
 // 255 = Input "register".
-
-struct kenbak_asm_constant
-{
-	char* name;
-	uint8_t val;
-	struct kenbak_asm_constant * next;
-};
 
 // *****************************************************************************
 // *** Error message stuff:                                                  ***

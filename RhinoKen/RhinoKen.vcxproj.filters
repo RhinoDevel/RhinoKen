@@ -68,5 +68,8 @@
     <ClInclude Include="kenbak_asm.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="kenbak_asm_constant.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

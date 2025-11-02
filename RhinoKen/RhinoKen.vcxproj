@@ -138,6 +138,7 @@
   <ItemGroup>
     <ClInclude Include="kenbak_addr_mode.h" />
     <ClInclude Include="kenbak_asm.h" />
+    <ClInclude Include="kenbak_asm_constant.h" />
     <ClInclude Include="kenbak_emu.h" />
     <ClInclude Include="kenbak_input.h" />
     <ClInclude Include="kenbak_instr.h" />
