@@ -33,6 +33,9 @@
     <ClCompile Include="kenbak_asm.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="kenbak_asm_constant.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kenbak_state.h">

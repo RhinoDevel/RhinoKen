@@ -62,57 +62,6 @@ static char const s_val_hex = '$';
 // *** Functions:                                                            ***
 // *****************************************************************************
 
-/**
- * - Caller takes ownership of return value.
- */
-static struct kenbak_asm_constant * constant_create()
-{
-	struct kenbak_asm_constant * const ret_val = malloc(sizeof *ret_val);
-
-	assert(ret_val != NULL);
-
-	ret_val->name = NULL;
-	ret_val->val = 0;
-	ret_val->next = NULL;
-
-	return ret_val;
-}
-
-/**
- * - Also frees next and all following constants.
- * - Assumes that the name property needs to be freed, too.
- */
-static void constant_free(struct kenbak_asm_constant * const first_constant)
-{
-	struct kenbak_asm_constant * cur_constant = first_constant;
-
-	while(cur_constant != NULL)
-	{
-		struct kenbak_asm_constant * next = cur_constant->next;
-
-		free(cur_constant->name);
-		cur_constant->name = NULL;
-
-		free(cur_constant);
-		cur_constant = next;
-	}
-}
-
-/**
- * - Also prints next and all following constants.
- */
-static void constant_print(struct kenbak_asm_constant * const first_constant)
-{
-	struct kenbak_asm_constant * cur_constant = first_constant;
-
-	while(cur_constant != NULL)
-	{
-		printf("%s = %d\n", cur_constant->name, (int)cur_constant->val);
-
-		cur_constant = cur_constant->next;
-	}
-}
-
 static int get_dec_digit_count(unsigned int const val)
 {
 	int ret_val = 0;
@@ -650,7 +599,7 @@ static int read_constants(
 	int constant_count = 0;
 	int consumed_chars = 0;
 	int txt_pos_buf = *txt_pos;
-	struct kenbak_asm_constant * first_constant = constant_create();
+	struct kenbak_asm_constant * first_constant = kenbak_asm_constant_create();
 	struct kenbak_asm_constant * cur_constant = first_constant;
 	struct kenbak_asm_constant * prev_constant = NULL;
 
@@ -666,7 +615,7 @@ static int read_constants(
 				// Prune the last (unused) node:
 				assert(prev_constant->next == cur_constant);
 				prev_constant->next = NULL;
-				constant_free(cur_constant);
+				kenbak_asm_constant_free(cur_constant);
 				cur_constant = prev_constant;
 				prev_constant = NULL; // Kind of wrong, but OK..
 			}
@@ -675,7 +624,7 @@ static int read_constants(
 		if(constant_consumed == -1)
 		{
 			assert(*out_err_msg != NULL);
-			constant_free(first_constant);
+			kenbak_asm_constant_free(first_constant);
 			return -1;
 		}
 
@@ -683,7 +632,7 @@ static int read_constants(
 		consumed_chars += constant_consumed;
 		
 		// May gets pruned during next iteration, if no more found:
-		struct kenbak_asm_constant * const next = constant_create();
+		struct kenbak_asm_constant * const next = kenbak_asm_constant_create();
 
 		cur_constant->next = next;
 		prev_constant = cur_constant;
@@ -693,7 +642,7 @@ static int read_constants(
 	if(constant_count == 0)
 	{
 		assert(*out_err_msg == NULL);
-		constant_free(first_constant);
+		kenbak_asm_constant_free(first_constant);
 		first_constant = NULL;
 		return 0;
 	}
@@ -735,8 +684,8 @@ uint8_t* kenbak_asm_exec(
 		return NULL;
 	}
 
-	constant_print(first_constant);
-	constant_free(first_constant);
+	kenbak_asm_constant_print(first_constant);
+	kenbak_asm_constant_free(first_constant);
 
 	// TODO: Implement!
 	*out_msg = create_err_msg(txt_pos, "Not implemented!");

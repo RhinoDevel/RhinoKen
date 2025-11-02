@@ -129,6 +129,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="kenbak_asm.c" />
+    <ClCompile Include="kenbak_asm_constant.c" />
     <ClCompile Include="kenbak_emu.c" />
     <ClCompile Include="kenbak_instr.c" />
     <ClCompile Include="kenbak_state.c" />
