@@ -321,7 +321,7 @@ static char * try_read_name(
 
 	assert(0 < buf_pos);
 
-	char * const ret_val = malloc((buf_pos + 1) * sizeof *ret_val);
+	char * const ret_val = malloc((size_t)(buf_pos + 1) * sizeof *ret_val);
 
 	assert(ret_val != NULL);
 
