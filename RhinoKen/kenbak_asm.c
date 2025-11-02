@@ -577,21 +577,15 @@ static int try_read_constant(
  * - Returns -1 on error.
  */
 static int read_constants(
-	char const * const txt,
-	int const txt_len,
-	int * const txt_pos,
-	struct kenbak_asm_constant * * const out_first_constant,
-	char * * const out_err_msg)
+	struct kenbak_asm_data * const data, char * * const out_err_msg)
 {
-	assert(txt != NULL);
-	assert(0 <= txt_len);
-	assert(txt_pos != NULL && 0 <= *txt_pos && *txt_pos <= txt_len);
-	assert(out_first_constant != NULL && *out_first_constant == NULL);
+	assert(0 <= data->txt_pos && data->txt_pos <= data->txt_len);
+	assert(data->first_constant == NULL);
 	assert(out_err_msg != NULL && *out_err_msg == NULL);
 
 	int constant_count = 0;
 	int consumed_chars = 0;
-	int txt_pos_buf = *txt_pos;
+	int txt_pos_buf = data->txt_pos;
 	struct kenbak_asm_constant * first_constant = kenbak_asm_constant_create();
 	struct kenbak_asm_constant * cur_constant = first_constant;
 	struct kenbak_asm_constant * prev_constant = NULL;
@@ -599,7 +593,11 @@ static int read_constants(
 	do
 	{
 		int const constant_consumed = try_read_constant(
-				txt, txt_len, &txt_pos_buf, cur_constant, out_err_msg);
+				data->txt,
+				data->txt_len,
+				&txt_pos_buf,
+				cur_constant,
+				out_err_msg);
 
 		if(constant_consumed == 0)
 		{
@@ -639,8 +637,8 @@ static int read_constants(
 		first_constant = NULL;
 		return 0;
 	}
-	*txt_pos = txt_pos_buf;
-	*out_first_constant = first_constant; // Takes ownership.
+	data->txt_pos = txt_pos_buf;
+	data->first_constant = first_constant; // Takes ownership.
 	first_constant = NULL;
 	return consumed_chars;
 }
@@ -654,18 +652,13 @@ uint8_t* kenbak_asm_exec(
 	assert(out_len != NULL);
 	assert(out_msg != NULL);
 
-	struct kenbak_asm_data * data = kenbak_asm_data_create(txt, txt_len);
+	struct kenbak_asm_data * const data = kenbak_asm_data_create(txt, txt_len);
 
 	assert(data->consumed == 0);
 	data->consumed += consume_whitespaces_and_comments(
 		data->txt, data->txt_len, &(data->txt_pos));
 	
-	int const consumed_read_constants = read_constants(
-			data->txt,
-			data->txt_len,
-			&(data->txt_pos),
-			&(data->first_constant),
-			out_msg);
+	int const consumed_read_constants = read_constants(data, out_msg);
 
 	if(consumed_read_constants == -1)
 	{
