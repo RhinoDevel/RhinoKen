@@ -10,6 +10,7 @@
 
 #include "kenbak_asm.h"
 #include "kenbak_asm_constant.h"
+#include "kenbak_asm_data.h"
 
 // *****************************************************************************
 // *** Notes:                                                                ***
@@ -76,18 +77,6 @@ static int get_dec_digit_count(unsigned int const val)
 	return ret_val;
 }
 
-static void clear_bytes(uint8_t * const bytes, int const byte_count)
-{
-	// Although would work (see loop, below):
-	assert(bytes != NULL);
-	assert(0 < byte_count);
-
-	for(int i = 0; i < byte_count; ++i)
-	{
-		bytes[i] = 0;
-	}
-}
-
 static int get_index_of(
 	char const * const arr, int const arr_len, char const val)
 {
@@ -126,7 +115,11 @@ static char * create_err_msg(int const pos, char const * const msg)
 
 	char * const ret_val = malloc(len * sizeof * ret_val);
 
-	assert(ret_val != NULL);
+	if(ret_val == NULL)
+	{
+		assert(false); // Must not happen.
+		return NULL;
+	}
 
 	sprintf_s(
 		ret_val,
@@ -658,36 +651,34 @@ uint8_t* kenbak_asm_exec(
 	int * const out_len,
 	char * * const out_msg)
 {
-	assert(txt != NULL);
-	assert(0 <= txt_len);
 	assert(out_len != NULL);
 	assert(out_msg != NULL);
 
-	uint8_t mem[256]; // Represents the Kenbak-1's (whole) memory.
-	int mem_loc = 0; // The location counter (initially set to 0 automatically).
+	struct kenbak_asm_data * data = kenbak_asm_data_create(txt, txt_len);
+
+	assert(data->consumed == 0);
+	data->consumed += consume_whitespaces_and_comments(
+		data->txt, data->txt_len, &(data->txt_pos));
 	
-	int txt_pos = 0; // Position in the input text file.
-
-	int consumed = 0; // For error checking.
-
-	clear_bytes(mem, (int)(sizeof mem));
-
-	consumed += consume_whitespaces_and_comments(txt, txt_len, &txt_pos);
-	
-	struct kenbak_asm_constant * first_constant = NULL;
 	int const consumed_read_constants = read_constants(
-			txt, txt_len, &txt_pos, &first_constant, out_msg);
+			data->txt,
+			data->txt_len,
+			&(data->txt_pos),
+			&(data->first_constant),
+			out_msg);
 
 	if(consumed_read_constants == -1)
 	{
 		assert(*out_msg != NULL);
+		kenbak_asm_data_free(data);
 		return NULL;
 	}
 
-	kenbak_asm_constant_print(first_constant);
-	kenbak_asm_constant_free(first_constant);
+	kenbak_asm_constant_print(data->first_constant);
 
 	// TODO: Implement!
-	*out_msg = create_err_msg(txt_pos, "Not implemented!");
+	*out_msg = create_err_msg(data->txt_pos, "Not implemented!");
+
+	kenbak_asm_data_free(data);
 	return NULL;
 }

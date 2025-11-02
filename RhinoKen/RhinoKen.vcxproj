@@ -130,6 +130,7 @@
   <ItemGroup>
     <ClCompile Include="kenbak_asm.c" />
     <ClCompile Include="kenbak_asm_constant.c" />
+    <ClCompile Include="kenbak_asm_data.c" />
     <ClCompile Include="kenbak_emu.c" />
     <ClCompile Include="kenbak_instr.c" />
     <ClCompile Include="kenbak_state.c" />
@@ -140,6 +141,7 @@
     <ClInclude Include="kenbak_addr_mode.h" />
     <ClInclude Include="kenbak_asm.h" />
     <ClInclude Include="kenbak_asm_constant.h" />
+    <ClInclude Include="kenbak_asm_data.h" />
     <ClInclude Include="kenbak_emu.h" />
     <ClInclude Include="kenbak_input.h" />
     <ClInclude Include="kenbak_instr.h" />
