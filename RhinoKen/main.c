@@ -11,7 +11,7 @@
 #include "kenbak_emu.h"
 #include "kenbak_data.h"
 
-#include "kenbak_asm.h"
+//#include "kenbak_asm.h"
 
 // See kenbak_emu.h:
 //
@@ -391,8 +391,9 @@ static void fill_mem(
 
 int main(void)
 {
-	// TODO: Testing:
+	// TODO: Testing: The WIP assembler:
 	//
+#if 0
 	{
 		static char * const texts[] = {
 			//"",
@@ -449,6 +450,7 @@ int main(void)
 
 		return 0;
 	}
+#endif //0
 
 	struct kenbak_data * const d = kenbak_emu_create(true);
 	uint32_t last = 0;
