@@ -1,5 +1,7 @@
 # RhinoKen - Kenbak-1 emulator
 
+![Screenshot of the terminal interface to the emulator](./RhinoKen.jpg)
+
 ## About the Kenbak-1
 
 The [Kenbak-1](https://en.wikipedia.org/wiki/Kenbak-1) is a computer by John
