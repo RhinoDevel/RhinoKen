@@ -51,7 +51,7 @@ What does this implementation offer?
   made a kind-of replica, based on an
   [ESP-32](https://en.wikipedia.org/wiki/ESP32) microcontroller).
 
-- This repository includes a `main.cpp` with a simple terminal-based user
+- This repository includes a `main.c` with a simple terminal-based user
   interface for the Windows operating system (simple to port to e.g. Linux).
 
 - A simple assembler is included, state is *work-in-progress*.
