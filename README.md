@@ -1,5 +1,7 @@
 # RhinoKen - Kenbak-1 emulator
 
+![GIF of RhinoKen running on an ESP-32](./RhinoKen%20on%20an%20ESP-32.gif)
+
 ![Screenshot of the terminal interface to the emulator](./RhinoKen.jpg)
 
 ## About the Kenbak-1
