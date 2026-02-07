@@ -1360,20 +1360,21 @@ static void update_input_byte(struct kenbak_data * const d)
         return;
     }
  
-    // TODO: Skip the following, if !d->sig_bu?
-    //
-    for(int i = 0; i < KENBAK_INPUT_BITS; ++i)
+    if(d->sig_bu) // The if clause is technically not necessary, here.
     {
-        if(d->input.buttons_data[i])
+        for(int i = 0; i < KENBAK_INPUT_BITS; ++i)
         {
-            // Current bit's input button is currently pushed down.
+            if(d->input.buttons_data[i])
+            {
+                // Current bit's input button is currently pushed down.
 
-            or_mask |= 1 << i; // Triggers enabling of bit value.
+                or_mask |= 1 << i; // Triggers enabling of bit value.
+            }
         }
+        val = mem_read(d, KENBAK_DATA_ADDR_INPUT);
+        val |= or_mask;
+        mem_write(d, KENBAK_DATA_ADDR_INPUT, val);
     }
-    val = mem_read(d, KENBAK_DATA_ADDR_INPUT);
-    val |= or_mask;
-    mem_write(d, KENBAK_DATA_ADDR_INPUT, val);
 }
 
 static void update_input_signals(struct kenbak_data * const d)
