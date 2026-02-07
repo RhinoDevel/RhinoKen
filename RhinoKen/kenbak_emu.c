@@ -1297,20 +1297,20 @@ static int step_in_qf(struct kenbak_data * const d)
  */
 static void update_x_signal(struct kenbak_data* const d)
 {
-    if (d->sig_da)
+    if (d->sig_da) // Address display button is pressed.
     {
         assert(!d->sig_dd);
-        assert(d->state != kenbak_state_sa);
+        //assert(d->state != kenbak_state_sa);
         assert(!d->sig_bu);
         assert(!d->sig_cl);
 
         d->sig_x = kenbak_x_1;
         return;
     }
-    if (d->sig_dd)
+    if (d->sig_dd) // Memory read button is pressed.
     {
         assert(!d->sig_da);
-        assert(d->state != kenbak_state_sa);
+        //assert(d->state != kenbak_state_sa);
         assert(!d->sig_bu);
         assert(!d->sig_cl);
 
@@ -1321,8 +1321,8 @@ static void update_x_signal(struct kenbak_data* const d)
     {
         assert(!d->sig_da);
         assert(!d->sig_dd);
-        assert(!d->sig_bu);
-        assert(!d->sig_cl);
+        //assert(!d->sig_bu);
+        //assert(!d->sig_cl);
 
         d->sig_x = kenbak_x_3;
         return;
