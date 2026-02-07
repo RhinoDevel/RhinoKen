@@ -1168,6 +1168,9 @@ static int step_in_qb(struct kenbak_data * const d)
         return 1;
     }
 
+    // Not that close to the real Kenbak-1, maybe implement d->sig_ht?
+    d->sig_ed = false;
+
     d->state = kenbak_state_sa;
     return 1;
 }
@@ -1399,7 +1402,7 @@ static void update_input_signals(struct kenbak_data * const d)
     // instruction and not the run stop button, also see step_in_sb():
     //
     d->sig_ed = d->sig_ed || d->input.but_run_stop;
-    
+
     d->sig_en = d->input.but_memory_store;
     d->sig_go = d->input.but_run_start;
 }
